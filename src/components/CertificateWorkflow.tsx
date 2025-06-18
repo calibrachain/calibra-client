@@ -1,35 +1,31 @@
 import React, { useState } from 'react';
-import { WorkflowStep } from '../types';
+import { useAccount } from 'wagmi';
 import FileUpload from './FileUpload';
 import ProcessingModal from './ProcessingModal';
 
 const CertificateWorkflow: React.FC = () => {
+  const { isConnected } = useAccount();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [showProcessingModal, setShowProcessingModal] = useState(false);
-  const [processingComplete, setProcessingComplete] = useState(false);
-  const [processingSuccess, setProcessingSuccess] = useState(false);
-  const [transactionHash, setTransactionHash] = useState<string | null>(null);
 
   const handleFileSelect = (file: File) => {
+    if (!isConnected) {
+      alert('Please connect your wallet first to proceed with certificate processing.');
+      return;
+    }
+    
     setSelectedFile(file);
     setShowProcessingModal(true);
   };
 
   const handleProcessingComplete = (success: boolean, hash?: string) => {
-    setProcessingComplete(true);
-    setProcessingSuccess(success);
-    
-    if (success && hash) {
-      setTransactionHash(hash);
-    }
+    // Para futuro uso quando integrarmos com blockchain real
+    console.log('Processing completed:', { success, hash });
   };
 
   const handleCloseModal = () => {
     setShowProcessingModal(false);
     setSelectedFile(null);
-    setProcessingComplete(false);
-    setProcessingSuccess(false);
-    setTransactionHash(null);
   };
 
   return (
@@ -74,6 +70,27 @@ const CertificateWorkflow: React.FC = () => {
 
       {/* Upload Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        {/* Wallet Connection Status */}
+        <div className="mb-8">
+          <div className={`rounded-lg p-4 border ${
+            isConnected 
+              ? 'bg-green-50 border-green-200 text-green-800'
+              : 'bg-yellow-50 border-yellow-200 text-yellow-800'
+          }`}>
+            <div className="flex items-center space-x-2">
+              <div className={`w-3 h-3 rounded-full ${
+                isConnected ? 'bg-green-500' : 'bg-yellow-500'
+              }`}></div>
+              <span className="font-medium">
+                {isConnected 
+                  ? '✅ Wallet Connected - Ready to process certificates'
+                  : '⚠️ Please connect your wallet to continue'
+                }
+              </span>
+            </div>
+          </div>
+        </div>
+
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
             Get Started

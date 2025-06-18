@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { CheckCircle, Clock, Hash, ExternalLink, Copy, X, RotateCcw } from 'lucide-react';
-import { CertificateData, ProcessingStep, IPFSUploadResult } from '../types';
-import { parseXMLFile } from '../utils/xmlParser';
+import { CheckCircle, Clock, Copy, ExternalLink, Hash, RotateCcw, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useAccount } from 'wagmi';
+import { CertificateData, IPFSUploadResult, ProcessingStep } from '../types';
 import { generateIPFSHash, generateTransactionHash } from '../utils/mockData';
+import { parseXMLFile } from '../utils/xmlParser';
 
 interface ProcessingModalProps {
   selectedFile: File;
@@ -17,6 +18,7 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
   onClose, 
   isOpen 
 }) => {
+  const { address, isConnected } = useAccount();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [steps, setSteps] = useState<ProcessingStep[]>([
     { message: 'Reading XML file...', completed: false },

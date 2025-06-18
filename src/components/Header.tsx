@@ -1,6 +1,7 @@
-import React from 'react';
-import { Shield, CheckCircle, Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { CheckCircle, Menu, Shield, X } from 'lucide-react';
+import React, { useState } from 'react';
+import { NetworkIndicator } from './NetworkIndicator';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -39,9 +40,8 @@ const Header: React.FC = () => {
 
           {/* Connect Wallet Button */}
           <div className="hidden md:flex items-center space-x-4">
-            <button className="bg-calibra-blue-900 text-white px-6 py-2 rounded-lg font-medium hover:bg-calibra-blue-800 transition-colors">
-              Connect Wallet
-            </button>
+            <NetworkIndicator />
+            <ConnectButton />
           </div>
 
           {/* Mobile menu button */}
@@ -71,9 +71,7 @@ const Header: React.FC = () => {
               <a href="#" className="text-gray-700 hover:text-calibra-blue-900 font-medium transition-colors">
                 Support
               </a>
-              <button className="bg-calibra-blue-900 text-white px-6 py-2 rounded-lg font-medium hover:bg-calibra-blue-800 transition-colors w-full">
-                Connect Wallet
-              </button>
+              <ConnectButton />
             </div>
           </div>
         )}
