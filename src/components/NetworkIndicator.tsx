@@ -31,7 +31,7 @@ export const NetworkIndicator: React.FC = () => {
           <span>Unsupported Network</span>
           {switchChain && (
             <button
-              onClick={() => switchChain({ chainId: avalanche.id })}
+              onClick={() => switchChain({ chainId: avalancheFuji.id })}
               className="text-xs underline hover:no-underline"
             >
               Switch to Avalanche
