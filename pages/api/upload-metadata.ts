@@ -20,9 +20,13 @@ export default async function handler(
 
     console.log(`Uploading metadata for folder: ${folderName}`);
 
+    // Add additional uniqueness to metadata filename
+    const timestamp = Date.now();
+    const randomSuffix = Math.random().toString(36).substring(2, 8);
+    
     // Convert metadata object to JSON file
     const metadataJson = JSON.stringify(metadata, null, 2);
-    const metadataFile = new File([metadataJson], `${folderName}-metadata.json`, {
+    const metadataFile = new File([metadataJson], `${folderName}-metadata-${timestamp}-${randomSuffix}.json`, {
       type: 'application/json'
     });
 

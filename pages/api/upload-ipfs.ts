@@ -39,25 +39,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     // Create a unique folder name based on timestamp and XML filename
     const timestamp = Date.now();
+    const randomSuffix = Math.random().toString(36).substring(2, 8);
     const xmlBaseName = xmlFile.originalFilename?.replace('.xml', '') || 'dcc';
-    const folderName = `dcc-${xmlBaseName}-${timestamp}`;
+    const folderName = `dcc-${xmlBaseName}-${timestamp}-${randomSuffix}`;
 
     console.log(`Creating IPFS folder: ${folderName}`);
 
-    // Read XML file and create File object
+    // Read XML file and create File object with unique name
     const xmlBuffer = fs.readFileSync(xmlFile.filepath);
-    const xmlFileObject = new File([xmlBuffer], xmlFile.originalFilename || 'certificate.xml', {
+    const uniqueXmlName = `${xmlFile.originalFilename?.replace('.xml', '')}-${timestamp}-${randomSuffix}.xml` || `certificate-${timestamp}-${randomSuffix}.xml`;
+    const xmlFileObject = new File([xmlBuffer], uniqueXmlName, {
       type: xmlFile.mimetype || 'application/xml'
     });
 
     // Upload XML file with folder metadata
     const xmlUpload = await pinata.upload.public.file(xmlFileObject, {
       metadata: {
-        name: `${folderName}/${xmlFile.originalFilename}`,
+        name: `${folderName}/${uniqueXmlName}`,
         keyvalues: {
           type: "xml",
           folder: folderName,
-          originalName: xmlFile.originalFilename || 'certificate.xml'
+          originalName: xmlFile.originalFilename || 'certificate.xml',
+          timestamp: timestamp.toString()
         }
       }
     });
@@ -69,17 +72,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.log(`Uploading image: ${imageFile.originalFilename}`);
       
       const imageBuffer = fs.readFileSync(imageFile.filepath);
-      const imageFileObject = new File([imageBuffer], imageFile.originalFilename || 'image.png', {
+      const imageExtension = imageFile.originalFilename?.split('.').pop() || 'png';
+      const uniqueImageName = `${imageFile.originalFilename?.replace(/\.[^/.]+$/, '')}-${timestamp}-${randomSuffix}.${imageExtension}` || `image-${timestamp}-${randomSuffix}.png`;
+      const imageFileObject = new File([imageBuffer], uniqueImageName, {
         type: imageFile.mimetype || 'image/png'
       });
       
       imageUpload = await pinata.upload.public.file(imageFileObject, {
         metadata: {
-          name: `${folderName}/${imageFile.originalFilename}`,
+          name: `${folderName}/${uniqueImageName}`,
           keyvalues: {
             type: "image", 
             folder: folderName,
-            originalName: imageFile.originalFilename || 'image.png'
+            originalName: imageFile.originalFilename || 'image.png',
+            timestamp: timestamp.toString()
           }
         }
       });
