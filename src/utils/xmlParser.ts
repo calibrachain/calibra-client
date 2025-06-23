@@ -139,6 +139,41 @@ interface DCCXMLData {
             }];
           }];
         }];
+        'dcc:measuringEquipments'?: [{
+          'dcc:measuringEquipment': [{
+            'dcc:name': [{
+              'dcc:content': [{
+                _: string;
+                $: { lang: string };
+              }];
+            }];
+            'dcc:manufacturer'?: [{
+              'dcc:name': [{
+                'dcc:content': [{
+                  _: string;
+                  $: { lang: string };
+                }];
+              }];
+            }];
+            'dcc:model'?: [string];
+            'dcc:identifications'?: [{
+              'dcc:identification': [{
+                'dcc:issuer': [string];
+                'dcc:value': [string];
+                'dcc:name': [{
+                  'dcc:content': [{
+                    _: string;
+                    $: { lang: string };
+                  }];
+                }];
+              }];
+            }];
+            'dcc:certificate'?: [{
+              'dcc:referenceID': [string];
+              'dcc:reference': [string];
+            }];
+          }];
+        }];
         'dcc:data': [{
           'dcc:quantity': [{
             'dcc:name': [{
@@ -261,6 +296,33 @@ export const parseXMLFile = (xmlContent: string): Promise<CertificateData> => {
         const measurementValue = measurementData?.['dcc:list']?.[0]?.['dcc:datum']?.[0]?.['dcc:measured']?.[0]?.['si:real']?.[0] || 'N/A';
         const measurementUncertainty = measurementData?.['dcc:list']?.[0]?.['dcc:datum']?.[0]?.['dcc:uncertainty']?.[0]?.['si:real']?.[0] || 'N/A';
 
+        // Extract measuring equipments data
+        const measuringEquipments = measurementResult?.['dcc:measuringEquipments']?.[0]?.['dcc:measuringEquipment'] || [];
+        const standards = measuringEquipments.map(equipment => {
+          const equipmentName = equipment?.['dcc:name']?.[0]?.['dcc:content']?.[0]?._ || 'N/A';
+          const equipmentModel = equipment?.['dcc:model']?.[0] || 'N/A';
+          const equipmentSerial = equipment?.['dcc:identifications']?.[0]?.['dcc:identification']?.[0]?.['dcc:value']?.[0] || 'N/A';
+          const certificateRef = equipment?.['dcc:certificate']?.[0]?.['dcc:referenceID']?.[0] || 'N/A';
+          const certificateLink = equipment?.['dcc:certificate']?.[0]?.['dcc:reference']?.[0] || '';
+          
+          return {
+            name: `${equipmentName} ${equipmentModel}`.trim(),
+            serialNumber: equipmentSerial,
+            certificate: certificateRef,
+            certificateLink: certificateLink
+          };
+        });
+
+        // If no measuring equipments found, create default entry
+        if (standards.length === 0) {
+          standards.push({
+            name: 'DCC Standard',
+            serialNumber: 'N/A',
+            certificate: certificateId,
+            certificateLink: ''
+          });
+        }
+
         const certificateData: CertificateData = {
           // Legacy fields for backward compatibility
           certificateNumber: certificateId,
@@ -270,11 +332,7 @@ export const parseXMLFile = (xmlContent: string): Promise<CertificateData> => {
           serialNumber: serialNumber,
           calibrationDate: beginDate || '',
           expirationDate: endDate || '',
-          standards: [{
-            name: 'DCC Standard',
-            serialNumber: 'N/A',
-            certificate: certificateId
-          }],
+          standards: standards,
           
           // DCC-specific fields
           certificateId,

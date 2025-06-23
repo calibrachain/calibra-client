@@ -1,5 +1,6 @@
-import React, { useRef, useState } from 'react';
-import { X, Image as ImageIcon } from 'lucide-react';
+import clsx from 'clsx';
+import { AlertCircle, CheckCircle, Image as ImageIcon, X } from 'lucide-react';
+import React, { useCallback, useState } from 'react';
 
 interface ImageUploadProps {
   onImageSelect: (file: File | null) => void;
@@ -7,80 +8,69 @@ interface ImageUploadProps {
   disabled?: boolean;
 }
 
+const validateImageFile = (file: File): boolean => {
+  return file.type.startsWith('image/');
+};
+
 const ImageUpload: React.FC<ImageUploadProps> = ({ 
   onImageSelect, 
   selectedImage, 
   disabled = false 
 }) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const handleDragEnter = (e: React.DragEvent) => {
+  const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!disabled) {
+    if (e.type === 'dragenter' || e.type === 'dragover') {
       setDragActive(true);
+    } else if (e.type === 'dragleave') {
+      setDragActive(false);
     }
-  };
+  }, []);
 
-  const handleDragLeave = (e: React.DragEvent) => {
+  const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-  };
+    setError(null);
 
-  const handleDragOver = (e: React.DragEvent) => {
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      if (validateImageFile(file)) {
+        onImageSelect(file);
+        // Create preview URL
+        const url = URL.createObjectURL(file);
+        setPreviewUrl(url);
+      } else {
+        setError('Please select a valid image file.');
+      }
+    }
+  }, [onImageSelect]);
+
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-
-    if (disabled) return;
-
-    const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      const file = files[0];
-      handleFileSelection(file);
+    setError(null);
+    
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (validateImageFile(file)) {
+        onImageSelect(file);
+        // Create preview URL
+        const url = URL.createObjectURL(file);
+        setPreviewUrl(url);
+      } else {
+        setError('Please select a valid image file.');
+      }
     }
-  };
-
-  const handleFileSelection = (file: File) => {
-    // Validate file type
-    if (file.type.startsWith('image/')) {
-      onImageSelect(file);
-      
-      // Create preview URL
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
-    } else {
-      alert('Please select a valid image file (PNG, JPG, JPEG, GIF, WebP)');
-    }
-  };
-
-  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      handleFileSelection(files[0]);
-    }
-  };
+  }, [onImageSelect]);
 
   const handleRemoveImage = () => {
     onImageSelect(null);
     setPreviewUrl(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const handleClick = () => {
-    if (!disabled && fileInputRef.current) {
-      fileInputRef.current.click();
-    }
+    setError(null);
   };
 
   return (
@@ -129,44 +119,79 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
         </div>
       ) : (
         <div
-          className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-            dragActive
-              ? 'border-calibra-blue-500 bg-calibra-blue-50'
-              : 'border-gray-300 hover:border-calibra-blue-400 hover:bg-gray-50'
-          } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-          onDragEnter={handleDragEnter}
-          onDragLeave={handleDragLeave}
-          onDragOver={handleDragOver}
+          className={clsx(
+            'relative border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300',
+            {
+              'border-calibra-blue-500 bg-calibra-blue-50': dragActive,
+              'border-calibra-green-500 bg-calibra-green-50': selectedImage && !error,
+              'border-red-500 bg-red-50': error,
+              'border-gray-300 bg-gray-50 hover:border-calibra-blue-400 hover:bg-calibra-blue-50': !dragActive && !selectedImage && !error,
+            }
+          )}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
           onDrop={handleDrop}
-          onClick={handleClick}
         >
           <input
-            ref={fileInputRef}
             type="file"
             accept="image/*"
-            onChange={handleFileInput}
-            className="hidden"
+            onChange={handleChange}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             disabled={disabled}
           />
-          
-          <div className="flex flex-col items-center space-y-2">
-            <div className={`p-3 rounded-full ${
-              dragActive ? 'bg-calibra-blue-100' : 'bg-gray-100'
-            }`}>
-              <ImageIcon className={`h-6 w-6 ${
-                dragActive ? 'text-calibra-blue-600' : 'text-gray-400'
-              }`} />
+
+          <div className="space-y-6">
+            <div className="flex justify-center">
+              {error ? (
+                <AlertCircle className="h-16 w-16 text-red-500" />
+              ) : (
+                <ImageIcon className={clsx(
+                  'h-16 w-16 transition-colors',
+                  dragActive ? 'text-calibra-blue-500' : 'text-gray-400'
+                )} />
+              )}
             </div>
             
             <div>
-              <p className="text-sm font-medium text-gray-700">
-                {dragActive ? 'Drop your image here' : 'Upload certificate image'}
+              <p className="text-2xl font-semibold text-gray-700 mb-3">
+                {error ? 'File Error' : 'Drop your certificate image here'}
               </p>
-              <p className="text-xs text-gray-500 mt-1">
-                Drag & drop or click to select • PNG, JPG, JPEG, GIF, WebP
+              <p className="text-lg text-gray-500 mb-6">
+                {error ? error : 'or click to browse and select your certificate image'}
               </p>
+              
+              <div className="flex items-center justify-center space-x-3 text-sm text-gray-400">
+                <ImageIcon className="h-5 w-5" />
+                <span>Supports image files up to 10MB</span>
+              </div>
+            </div>
+
+            {/* Features */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 border-t border-gray-200">
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <CheckCircle className="h-4 w-4 text-calibra-green-500" />
+                <span>Secure Processing</span>
+              </div>
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <CheckCircle className="h-4 w-4 text-calibra-green-500" />
+                <span>IPFS Storage</span>
+              </div>
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <CheckCircle className="h-4 w-4 text-calibra-green-500" />
+                <span>Optional Upload</span>
+              </div>
             </div>
           </div>
+
+          {disabled && (
+            <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-xl">
+              <div className="flex items-center space-x-2">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-calibra-blue-900"></div>
+                <span className="text-calibra-blue-900 font-medium">Processing...</span>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

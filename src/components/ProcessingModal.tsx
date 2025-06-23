@@ -1,8 +1,9 @@
 import { CheckCircle, Clock, Copy, ExternalLink, Hash, RotateCcw, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import { useAccount } from 'wagmi';
 import { CertificateData, IPFSUploadResult, ProcessingStep } from '../types';
-import { generateTransactionHash } from '../utils/mockData';
 import { processAndGenerateMetadata } from '../utils/metadataGenerator';
+import { generateTransactionHash } from '../utils/mockData';
 import { parseXMLFile } from '../utils/xmlParser';
 import ImageUpload from './ImageUpload';
 
@@ -19,6 +20,7 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
   onClose, 
   isOpen 
 }) => {
+  const { address } = useAccount();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [steps, setSteps] = useState<ProcessingStep[]>([
     { message: 'Reading XML file...', completed: false },
@@ -97,21 +99,7 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
       const updatedMetadata = {
         ...metadataResult.metadata,
         image: uploadResult.image ? uploadResult.image.url : metadataResult.metadata.image,
-        properties: {
-          ...metadataResult.metadata.properties,
-          xml_file: {
-            cid: uploadResult.xml.cid,
-            url: uploadResult.xml.url,
-            name: uploadResult.xml.name
-          },
-          ...(uploadResult.image && {
-            image_file: {
-              cid: uploadResult.image.cid,
-              url: uploadResult.image.url,
-              name: uploadResult.image.name
-            }
-          })
-        }
+        certificate_file: uploadResult.xml.url
       };
       
       // Upload metadata to IPFS
@@ -143,6 +131,31 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
       
       // Step 6: Executing Chainlink Functions
       await processStep(5, 2500);
+      
+      // Prepare data for Chainlink Functions
+      console.log('CertificateData for Chainlink:', data);
+      const chainlinkFunctionData = {
+        clienteAddress: address || 'No wallet connected',
+        tokenURI: `ipfs://${metadataUploadResult.metadata.cid}`,
+        labIdentifier: data?.labName || 'Unknown Laboratory',
+        // Additional lab data for verification
+        labDetails: {
+          name: data?.labName || '',
+          email: data?.labEmail || '',
+          location: data?.labLocation || '',
+          countryCode: data?.labCountryCode || ''
+        }
+      };
+      
+      console.log('=== CHAINLINK FUNCTIONS DATA ===');
+      console.log('clienteAddress:', chainlinkFunctionData.clienteAddress);
+      console.log('tokenURI:', chainlinkFunctionData.tokenURI);
+      console.log('labIdentifier:', chainlinkFunctionData.labIdentifier);
+      console.log('labDetails:', chainlinkFunctionData.labDetails);
+      console.log('================================');
+      
+      // TODO: Call Chainlink Functions with the data above
+      // Example: await callChainlinkFunction(chainlinkFunctionData);
       
       // Step 7: Verifying laboratory credentials
       await processStep(6, 2000);
@@ -237,7 +250,6 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
               <ImageUpload
                 onImageSelect={setSelectedImage}
                 selectedImage={selectedImage}
-                disabled={hasStarted}
               />
               
               {/* Action Buttons */}

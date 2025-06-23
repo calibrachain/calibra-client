@@ -8,7 +8,20 @@ const nextConfig = {
     ignoreDuringBuilds: false,
   },
   images: {
-    domains: ['ipfs.io', 'calibra.vercel.app'],
+    domains: [
+      'ipfs.io', 
+      'calibra.vercel.app',
+      'silver-academic-raccoon-372.mypinata.cloud',
+      'gateway.pinata.cloud'
+    ],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '*.mypinata.cloud',
+        port: '',
+        pathname: '/ipfs/**',
+      },
+    ],
   },
   webpack: (config) => {
     config.resolve.fallback = {

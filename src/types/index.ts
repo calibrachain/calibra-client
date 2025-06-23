@@ -11,6 +11,7 @@ export interface CertificateData {
     name: string;
     serialNumber: string;
     certificate: string;
+    certificateLink?: string;
   }>;
   
   // DCC-specific fields
@@ -130,21 +131,21 @@ export interface DCCData {
 }
 
 export interface MetadataJSON {
-  name: string;
-  description: string;
-  image: string;
-  certificate_file: string;
-  attributes: Array<{
-    trait_type: string;
-    value: string;
+  nome: string;
+  descricao: string;
+  imagem: string;
+  arquivo_certificado: string;
+  atributos: Array<{
+    tipo_caracteristica: string;
+    valor: string;
   }>;
-  measuring_equipments: Array<{
-    name: string;
-    identifications: Array<{
-      type: string;
-      value: string;
+  equipamentos_medicao: Array<{
+    nome: string;
+    identificacoes: Array<{
+      tipo: string;
+      valor: string;
     }>;
-    onchain_address?: string;
+    endereco_onchain?: string;
   }>;
 }
 

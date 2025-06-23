@@ -5,63 +5,66 @@ export interface NFTMetadata {
   name: string;
   description: string;
   image: string;
-  external_url: string;
+  certificate_file: string;
   attributes: Array<{
     trait_type: string;
     value: string;
   }>;
-  properties: {
-    certificate_data: Record<string, unknown>;
-  };
+  measuring_equipments: Array<{
+    name: string;
+    identifications: Array<{
+      type: string;
+      value: string;
+    }>;
+    onchain_address: string;
+  }>;
 }
 
-export const generateMetadataFromTemplate = (certificateData: CertificateData): NFTMetadata => {
+export const generateMetadataFromTemplate = (
+  certificateData: CertificateData, 
+  imageUrl?: string,
+  certificateFileUrl?: string
+): NFTMetadata => {
   // Convert the template to a string and replace all placeholders
   let metadataString = JSON.stringify(metadataTemplate, null, 2);
   
+  // Calculate expiration date (1 year from issue date)
+  const issueDate = new Date(certificateData.issueDate);
+  const expirationDate = new Date(issueDate);
+  expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+  
+  // Create certificate name
+  const certificateName = `Certificado de Calibração #${certificateData.certificateId}`;
+  
+  // Create description
+  const description = `Certificado para o ${certificateData.itemName} modelo ${certificateData.itemModel} da ${certificateData.customerName}.`;
+  
+  // Get instrument name
+  const instrumentName = `${certificateData.itemName} ${certificateData.itemModel}`;
+  
+  // Get reference certificate info (from first standard if available)
+  const referenceStandards = certificateData.standards || [];
+  const firstStandard = referenceStandards[0];
+  const referenceCertificateName = firstStandard ? 
+    `Certificado de Calibração #${firstStandard.certificate}` : 
+    "Padrão de Referência";
+  const referenceSerial = firstStandard ? firstStandard.serialNumber : "";
+  const onchainAddress = firstStandard?.certificateLink || "";
+  
   // Define all the replacements
   const replacements: Record<string, string> = {
-    '{{CERTIFICATE_NAME}}': `DCC - ${certificateData.itemName} ${certificateData.itemModel}`,
-    '{{CERTIFICATE_ID}}': certificateData.certificateId,
-    '{{ISSUE_DATE}}': certificateData.issueDate,
-    '{{VALID_FROM}}': certificateData.validFrom || 'N/A',
-    '{{VALID_UNTIL}}': certificateData.validUntil || 'N/A',
-    '{{RECEIPT_DATE}}': certificateData.receiptDate || 'N/A',
+    '{{CERTIFICATE_NAME}}': certificateName,
+    '{{DESCRIPTION}}': description,
+    '{{IMAGE_URL}}': imageUrl || "",
+    '{{CERTIFICATE_FILE_URL}}': certificateFileUrl || "",
     '{{LAB_NAME}}': certificateData.labName,
-    '{{LAB_EMAIL}}': certificateData.labEmail,
-    '{{LAB_PHONE}}': certificateData.labPhone,
-    '{{LAB_STREET}}': certificateData.labStreet,
-    '{{LAB_CITY}}': certificateData.labCity,
-    '{{LAB_POSTAL_CODE}}': certificateData.labPostalCode,
-    '{{LAB_COUNTRY_CODE}}': certificateData.labCountryCode,
-    '{{LAB_LOCATION}}': certificateData.labLocation,
-    '{{CUSTOMER_NAME}}': certificateData.customerName,
-    '{{CUSTOMER_EMAIL}}': certificateData.customerEmail,
-    '{{CUSTOMER_STREET}}': certificateData.customerStreet,
-    '{{CUSTOMER_CITY}}': certificateData.customerCity,
-    '{{CUSTOMER_POSTAL_CODE}}': certificateData.customerPostalCode,
-    '{{CUSTOMER_COUNTRY_CODE}}': certificateData.customerCountryCode,
-    '{{RESPONSIBLE_PERSON}}': certificateData.responsiblePerson,
-    '{{MAIN_SIGNER}}': certificateData.mainSigner.toString(),
-    '{{ITEM_NAME}}': certificateData.itemName,
-    '{{MANUFACTURER}}': certificateData.manufacturer,
-    '{{ITEM_MODEL}}': certificateData.itemModel,
+    '{{ISSUE_DATE}}': certificateData.issueDate,
+    '{{EXPIRATION_DATE}}': expirationDate.toISOString().split('T')[0],
+    '{{INSTRUMENT_NAME}}': instrumentName,
     '{{SERIAL_NUMBER}}': certificateData.serialNumber,
-    '{{ITEM_IDENTIFICATIONS}}': certificateData.itemIdentifications,
-    '{{COUNTRY_CODE}}': certificateData.countryCode,
-    '{{LANGUAGE}}': certificateData.language,
-    '{{SCHEMA_VERSION}}': certificateData.schemaVersion,
-    '{{DCC_SOFTWARE}}': certificateData.dccSoftware,
-    '{{SOFTWARE_VERSION}}': certificateData.softwareVersion,
-    '{{SOFTWARE_DESCRIPTION}}': certificateData.softwareDescription,
-    '{{MEASUREMENT_TYPE}}': certificateData.measurementType,
-    '{{MEASUREMENT_METHOD}}': certificateData.measurementMethod,
-    '{{MEASUREMENT_UNIT}}': certificateData.measurementUnit,
-    '{{MEASURED_VALUE}}': certificateData.measuredValue,
-    '{{MEASUREMENT_UNCERTAINTY}}': certificateData.measurementUncertainty,
-    '{{MEASUREMENT_DECLARATION}}': certificateData.measurementDeclaration,
-    '{{EXTERNAL_URL}}': certificateData.externalUrl,
-    '{{IMAGE_URL}}': certificateData.imageUrl
+    '{{REFERENCE_CERTIFICATE_NAME}}': referenceCertificateName,
+    '{{REFERENCE_SERIAL}}': referenceSerial,
+    '{{ONCHAIN_ADDRESS}}': onchainAddress
   };
 
   // Replace all placeholders
@@ -99,36 +102,22 @@ export const saveMetadataToFile = async (metadata: NFTMetadata, certificateId: s
   }
 };
 
-// Optional: Upload to IPFS (placeholder for future implementation)
-export const uploadMetadataToIPFS = async (metadata: NFTMetadata): Promise<string> => {
-  // TODO: Implement IPFS upload using a service like Pinata, Web3.Storage, or local IPFS node
-  console.log('IPFS upload not implemented yet', metadata);
-  throw new Error('IPFS upload not implemented yet');
-};
-
 export const processAndGenerateMetadata = async (
   certificateData: CertificateData,
-  uploadToIPFS = false
+  uploadToIPFS = false,
+  imageUrl?: string,
+  certificateFileUrl?: string
 ): Promise<{ metadata: NFTMetadata; url?: string; ipfsHash?: string }> => {
-  const metadata = generateMetadataFromTemplate(certificateData);
+  const metadata = generateMetadataFromTemplate(certificateData, imageUrl, certificateFileUrl);
   
   let url: string | undefined;
-  let ipfsHash: string | undefined;
 
-  if (uploadToIPFS) {
-    try {
-      ipfsHash = await uploadMetadataToIPFS(metadata);
-    } catch (error) {
-      console.warn('IPFS upload failed, falling back to local file save:', error);
-      url = await saveMetadataToFile(metadata, certificateData.certificateId);
-    }
-  } else {
+  if (!uploadToIPFS) {
     url = await saveMetadataToFile(metadata, certificateData.certificateId);
   }
 
   return {
     metadata,
-    url,
-    ipfsHash
+    url
   };
 };
