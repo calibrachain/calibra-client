@@ -1,4 +1,5 @@
 export interface CertificateData {
+  // Legacy fields for backward compatibility
   certificateNumber: string;
   laboratory: string;
   client: string;
@@ -11,6 +12,47 @@ export interface CertificateData {
     serialNumber: string;
     certificate: string;
   }>;
+  
+  // DCC-specific fields
+  certificateId: string;
+  schemaVersion: string;
+  countryCode: string;
+  language: string;
+  receiptDate: string | null;
+  validFrom: string | null;
+  validUntil: string | null;
+  issueDate: string;
+  labName: string;
+  labEmail: string;
+  labPhone: string;
+  labStreet: string;
+  labCity: string;
+  labPostalCode: string;
+  labCountryCode: string;
+  labLocation: string;
+  customerName: string;
+  customerEmail: string;
+  customerStreet: string;
+  customerCity: string;
+  customerPostalCode: string;
+  customerCountryCode: string;
+  responsiblePerson: string;
+  mainSigner: boolean;
+  itemName: string;
+  manufacturer: string;
+  itemModel: string;
+  itemIdentifications: string;
+  dccSoftware: string;
+  softwareVersion: string;
+  softwareDescription: string;
+  measurementType: string;
+  measurementMethod: string;
+  measurementUnit: string;
+  measuredValue: string;
+  measurementUncertainty: string;
+  measurementDeclaration: string;
+  externalUrl: string;
+  imageUrl: string;
 }
 
 // DCC Schema Types (based on PTB Digital Calibration Certificate)

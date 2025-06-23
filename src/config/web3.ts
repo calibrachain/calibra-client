@@ -6,12 +6,12 @@ import {
 
 export const config = getDefaultConfig({
   appName: 'Calibra - Digital Calibration Certificates',
-  projectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || 'YOUR_PROJECT_ID',
+  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'YOUR_PROJECT_ID',
   chains: [
     avalancheFuji,
     avalanche,
   ],
-  ssr: false, // Vite doesn't support SSR
+  ssr: true,
 });
 
 export const SUPPORTED_CHAINS = {

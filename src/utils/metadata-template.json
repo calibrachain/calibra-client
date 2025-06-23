@@ -1,0 +1,155 @@
+{
+  "name": "{{CERTIFICATE_NAME}}",
+  "description": "Digital Calibration Certificate for {{ITEM_NAME}} ({{ITEM_MODEL}}) - Certificate ID: {{CERTIFICATE_ID}}",
+  "image": "{{IMAGE_URL}}",
+  "external_url": "{{EXTERNAL_URL}}",
+  "attributes": [
+    {
+      "trait_type": "Certificate ID",
+      "value": "{{CERTIFICATE_ID}}"
+    },
+    {
+      "trait_type": "Issue Date",
+      "value": "{{ISSUE_DATE}}"
+    },
+    {
+      "trait_type": "Valid From",
+      "value": "{{VALID_FROM}}"
+    },
+    {
+      "trait_type": "Valid Until",
+      "value": "{{VALID_UNTIL}}"
+    },
+    {
+      "trait_type": "Calibration Laboratory",
+      "value": "{{LAB_NAME}}"
+    },
+    {
+      "trait_type": "Laboratory Location",
+      "value": "{{LAB_LOCATION}}"
+    },
+    {
+      "trait_type": "Customer",
+      "value": "{{CUSTOMER_NAME}}"
+    },
+    {
+      "trait_type": "Responsible Person",
+      "value": "{{RESPONSIBLE_PERSON}}"
+    },
+    {
+      "trait_type": "Item Name",
+      "value": "{{ITEM_NAME}}"
+    },
+    {
+      "trait_type": "Manufacturer",
+      "value": "{{MANUFACTURER}}"
+    },
+    {
+      "trait_type": "Model",
+      "value": "{{ITEM_MODEL}}"
+    },
+    {
+      "trait_type": "Serial Number",
+      "value": "{{SERIAL_NUMBER}}"
+    },
+    {
+      "trait_type": "Country Code",
+      "value": "{{COUNTRY_CODE}}"
+    },
+    {
+      "trait_type": "Language",
+      "value": "{{LANGUAGE}}"
+    },
+    {
+      "trait_type": "Schema Version",
+      "value": "{{SCHEMA_VERSION}}"
+    },
+    {
+      "trait_type": "DCC Software",
+      "value": "{{DCC_SOFTWARE}}"
+    },
+    {
+      "trait_type": "Software Version",
+      "value": "{{SOFTWARE_VERSION}}"
+    },
+    {
+      "trait_type": "Measurement Type",
+      "value": "{{MEASUREMENT_TYPE}}"
+    },
+    {
+      "trait_type": "Measurement Method",
+      "value": "{{MEASUREMENT_METHOD}}"
+    },
+    {
+      "trait_type": "Measurement Unit",
+      "value": "{{MEASUREMENT_UNIT}}"
+    },
+    {
+      "trait_type": "Measured Value",
+      "value": "{{MEASURED_VALUE}}"
+    },
+    {
+      "trait_type": "Measurement Uncertainty",
+      "value": "{{MEASUREMENT_UNCERTAINTY}}"
+    }
+  ],
+  "properties": {
+    "certificate_data": {
+      "certificate_id": "{{CERTIFICATE_ID}}",
+      "schema_version": "{{SCHEMA_VERSION}}",
+      "country_code": "{{COUNTRY_CODE}}",
+      "language": "{{LANGUAGE}}",
+      "dates": {
+        "receipt_date": "{{RECEIPT_DATE}}",
+        "begin_performance": "{{VALID_FROM}}",
+        "end_performance": "{{VALID_UNTIL}}",
+        "issue_date": "{{ISSUE_DATE}}"
+      },
+      "laboratory": {
+        "name": "{{LAB_NAME}}",
+        "email": "{{LAB_EMAIL}}",
+        "phone": "{{LAB_PHONE}}",
+        "location": {
+          "street": "{{LAB_STREET}}",
+          "city": "{{LAB_CITY}}",
+          "postal_code": "{{LAB_POSTAL_CODE}}",
+          "country_code": "{{LAB_COUNTRY_CODE}}"
+        }
+      },
+      "customer": {
+        "name": "{{CUSTOMER_NAME}}",
+        "email": "{{CUSTOMER_EMAIL}}",
+        "location": {
+          "street": "{{CUSTOMER_STREET}}",
+          "city": "{{CUSTOMER_CITY}}",
+          "postal_code": "{{CUSTOMER_POSTAL_CODE}}",
+          "country_code": "{{CUSTOMER_COUNTRY_CODE}}"
+        }
+      },
+      "responsible_person": {
+        "name": "{{RESPONSIBLE_PERSON}}",
+        "main_signer": "{{MAIN_SIGNER}}"
+      },
+      "item": {
+        "name": "{{ITEM_NAME}}",
+        "manufacturer": "{{MANUFACTURER}}",
+        "model": "{{ITEM_MODEL}}",
+        "serial_number": "{{SERIAL_NUMBER}}",
+        "identifications": "{{ITEM_IDENTIFICATIONS}}"
+      },
+      "software": {
+        "name": "{{DCC_SOFTWARE}}",
+        "version": "{{SOFTWARE_VERSION}}",
+        "description": "{{SOFTWARE_DESCRIPTION}}"
+      },
+      "measurements": {
+        "type": "{{MEASUREMENT_TYPE}}",
+        "method": "{{MEASUREMENT_METHOD}}",
+        "unit": "{{MEASUREMENT_UNIT}}",
+        "measured_value": "{{MEASURED_VALUE}}",
+        "uncertainty": "{{MEASUREMENT_UNCERTAINTY}}",
+        "declaration": "{{MEASUREMENT_DECLARATION}}"
+      }
+    }
+  }
+}

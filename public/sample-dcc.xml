@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dcc:digitalCalibrationCertificate xmlns:dcc="https://ptb.de/dcc" xmlns:si="https://ptb.de/si" schemaVersion="2.4.0">
+    <dcc:administrativeData>
+        <dcc:dccSoftware>
+            <dcc:software>
+                <dcc:name>
+                    <dcc:content lang="en">DCC Creator</dcc:content>
+                </dcc:name>
+                <dcc:release>1.0.0</dcc:release>
+            </dcc:software>
+        </dcc:dccSoftware>
+        <dcc:coreData>
+            <dcc:countryCodeISO3166_1>DE</dcc:countryCodeISO3166_1>
+            <dcc:usedLangCodeISO639_1>en</dcc:usedLangCodeISO639_1>
+            <dcc:mandatoryLangCodeISO639_1>en</dcc:mandatoryLangCodeISO639_1>
+            <dcc:uniqueIdentifier>DCC-2024-001</dcc:uniqueIdentifier>
+            <dcc:beginPerformanceDate>2024-01-15</dcc:beginPerformanceDate>
+            <dcc:endPerformanceDate>2024-01-16</dcc:endPerformanceDate>
+        </dcc:coreData>
+        <dcc:items>
+            <dcc:item>
+                <dcc:name>
+                    <dcc:content lang="en">Digital Multimeter</dcc:content>
+                </dcc:name>
+                <dcc:manufacturer>
+                    <dcc:name>
+                        <dcc:content lang="en">Keysight Technologies</dcc:content>
+                    </dcc:name>
+                </dcc:manufacturer>
+                <dcc:model>34465A</dcc:model>
+                <dcc:identifications>
+                    <dcc:identification>
+                        <dcc:issuer>manufacturer</dcc:issuer>
+                        <dcc:value>MY57801234</dcc:value>
+                        <dcc:name>
+                            <dcc:content lang="en">Serial Number</dcc:content>
+                        </dcc:name>
+                    </dcc:identification>
+                </dcc:identifications>
+            </dcc:item>
+        </dcc:items>
+        <dcc:calibrationLaboratory>
+            <dcc:contact>
+                <dcc:name>
+                    <dcc:content lang="en">PTB Calibration Laboratory</dcc:content>
+                </dcc:name>
+                <dcc:eMail>calibration@ptb.de</dcc:eMail>
+                <dcc:phone>+49-531-592-0</dcc:phone>
+                <dcc:location>
+                    <dcc:city>Braunschweig</dcc:city>
+                    <dcc:countryCode>DE</dcc:countryCode>
+                    <dcc:postCode>38116</dcc:postCode>
+                    <dcc:street>Bundesallee 100</dcc:street>
+                </dcc:location>
+            </dcc:contact>
+        </dcc:calibrationLaboratory>
+        <dcc:respPersons>
+            <dcc:respPerson>
+                <dcc:person>
+                    <dcc:name>
+                        <dcc:content lang="en">Dr. John Smith</dcc:content>
+                    </dcc:name>
+                </dcc:person>
+                <dcc:mainSigner>true</dcc:mainSigner>
+            </dcc:respPerson>
+        </dcc:respPersons>
+        <dcc:customer>
+            <dcc:name>
+                <dcc:content lang="en">ACME Corporation</dcc:content>
+            </dcc:name>
+            <dcc:eMail>contact@acme.com</dcc:eMail>
+            <dcc:location>
+                <dcc:city>New York</dcc:city>
+                <dcc:countryCode>US</dcc:countryCode>
+                <dcc:postCode>10001</dcc:postCode>
+                <dcc:street>123 Main Street</dcc:street>
+            </dcc:location>
+        </dcc:customer>
+    </dcc:administrativeData>
+    <dcc:measurementResults>
+        <dcc:measurementResult>
+            <dcc:name>
+                <dcc:content lang="en">DC Voltage Measurement</dcc:content>
+            </dcc:name>
+            <dcc:usedMethods>
+                <dcc:usedMethod>
+                    <dcc:name>
+                        <dcc:content lang="en">Direct Comparison</dcc:content>
+                    </dcc:name>
+                </dcc:usedMethod>
+            </dcc:usedMethods>
+            <dcc:measurementMetaData>
+                <dcc:metaData>
+                    <dcc:declaration>
+                        <dcc:content lang="en">Measurement uncertainty according to GUM</dcc:content>
+                    </dcc:declaration>
+                </dcc:metaData>
+            </dcc:measurementMetaData>
+            <dcc:data>
+                <dcc:quantity>
+                    <dcc:name>
+                        <dcc:content lang="en">Voltage</dcc:content>
+                    </dcc:name>
+                    <dcc:unit>
+                        <si:volt/>
+                    </dcc:unit>
+                </dcc:quantity>
+                <dcc:list>
+                    <dcc:datum>
+                        <dcc:measured>
+                            <si:real>10.000</si:real>
+                        </dcc:measured>
+                        <dcc:uncertainty>
+                            <si:real>0.001</si:real>
+                        </dcc:uncertainty>
+                    </dcc:datum>
+                </dcc:list>
+            </dcc:data>
+        </dcc:measurementResult>
+    </dcc:measurementResults>
+</dcc:digitalCalibrationCertificate>

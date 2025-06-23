@@ -1,8 +1,8 @@
 import { CheckCircle, Clock, Copy, ExternalLink, Hash, RotateCcw, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { useAccount } from 'wagmi';
 import { CertificateData, IPFSUploadResult, ProcessingStep } from '../types';
 import { generateIPFSHash, generateTransactionHash } from '../utils/mockData';
+import { processAndGenerateMetadata } from '../utils/metadataGenerator';
 import { parseXMLFile } from '../utils/xmlParser';
 
 interface ProcessingModalProps {
@@ -18,7 +18,6 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
   onClose, 
   isOpen 
 }) => {
-  const { address, isConnected } = useAccount();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [steps, setSteps] = useState<ProcessingStep[]>([
     { message: 'Reading XML file...', completed: false },
@@ -50,20 +49,24 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
       // Step 1: Reading XML file
       await processStep(0, 1200);
       
+      // Read the actual XML file content
+      const xmlContent = await selectedFile.text();
+      
       // Step 2: Extracting certificate data
       await processStep(1, 1500);
-      const data = await parseXMLFile('mock-xml-content');
+      const data = await parseXMLFile(xmlContent);
       setCertificateData(data);
       
       // Step 3: Creating NFT metadata
       await processStep(2, 1800);
+      const metadataResult = await processAndGenerateMetadata(data, false);
       
       // Step 4: Uploading to IPFS
       await processStep(3, 2200);
       const ipfs: IPFSUploadResult = {
         fileHash: generateIPFSHash(),
         metadataHash: generateIPFSHash(),
-        gatewayUrl: 'https://ipfs.io/ipfs/'
+        gatewayUrl: metadataResult.url ? metadataResult.url : 'https://ipfs.io/ipfs/'
       };
       setIPFSResult(ipfs);
       
