@@ -1,9 +1,10 @@
 import { CheckCircle, Clock, Copy, ExternalLink, Hash, RotateCcw, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { CertificateData, IPFSUploadResult, ProcessingStep } from '../types';
-import { generateIPFSHash, generateTransactionHash } from '../utils/mockData';
+import { generateTransactionHash } from '../utils/mockData';
 import { processAndGenerateMetadata } from '../utils/metadataGenerator';
 import { parseXMLFile } from '../utils/xmlParser';
+import ImageUpload from './ImageUpload';
 
 interface ProcessingModalProps {
   selectedFile: File;
@@ -23,7 +24,8 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
     { message: 'Reading XML file...', completed: false },
     { message: 'Extracting certificate data...', completed: false },
     { message: 'Creating NFT metadata...', completed: false },
-    { message: 'Uploading to IPFS...', completed: false },
+    { message: 'Uploading files to IPFS...', completed: false },
+    { message: 'Uploading metadata to IPFS...', completed: false },
     { message: 'Executing Chainlink Functions...', completed: false },
     { message: 'Verifying laboratory credentials...', completed: false },
     { message: 'Creating blockchain transaction...', completed: false },
@@ -36,11 +38,13 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
   const [isComplete, setIsComplete] = useState(false);
   const [copied, setCopied] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [showImageUpload, setShowImageUpload] = useState(true);
 
   useEffect(() => {
     if (isOpen && !hasStarted) {
       setHasStarted(true);
-      processWorkflow();
+      // Don't auto-start processing, wait for user to choose image option
     }
   }, [isOpen, hasStarted]);
 
@@ -61,26 +65,93 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
       await processStep(2, 1800);
       const metadataResult = await processAndGenerateMetadata(data, false);
       
-      // Step 4: Uploading to IPFS
+      // Hide image upload after processing starts
+      setShowImageUpload(false);
+      
+      // Step 4: Uploading files to IPFS
       await processStep(3, 2200);
+      
+      // Upload XML and optional image to IPFS
+      const formData = new FormData();
+      formData.append('xml', selectedFile);
+      if (selectedImage) {
+        formData.append('image', selectedImage);
+      }
+      
+      const uploadResponse = await fetch('/api/upload-ipfs', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload files to IPFS');
+      }
+      
+      const uploadResult = await uploadResponse.json();
+      console.log('IPFS Upload Result:', uploadResult);
+      
+      // Step 5: Uploading metadata to IPFS
+      await processStep(4, 1800);
+      
+      // Create updated metadata with real IPFS URLs
+      const updatedMetadata = {
+        ...metadataResult.metadata,
+        image: uploadResult.image ? uploadResult.image.url : metadataResult.metadata.image,
+        properties: {
+          ...metadataResult.metadata.properties,
+          xml_file: {
+            cid: uploadResult.xml.cid,
+            url: uploadResult.xml.url,
+            name: uploadResult.xml.name
+          },
+          ...(uploadResult.image && {
+            image_file: {
+              cid: uploadResult.image.cid,
+              url: uploadResult.image.url,
+              name: uploadResult.image.name
+            }
+          })
+        }
+      };
+      
+      // Upload metadata to IPFS
+      const metadataResponse = await fetch('/api/upload-metadata', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          metadata: updatedMetadata,
+          folderName: uploadResult.folderName
+        }),
+      });
+      
+      if (!metadataResponse.ok) {
+        throw new Error('Failed to upload metadata to IPFS');
+      }
+      
+      const metadataUploadResult = await metadataResponse.json();
+      console.log('Metadata Upload Result:', metadataUploadResult);
+      
+      // Update IPFS result with real data
       const ipfs: IPFSUploadResult = {
-        fileHash: generateIPFSHash(),
-        metadataHash: generateIPFSHash(),
-        gatewayUrl: metadataResult.url ? metadataResult.url : 'https://ipfs.io/ipfs/'
+        fileHash: uploadResult.xml.cid,
+        metadataHash: metadataUploadResult.metadata.cid,
+        gatewayUrl: uploadResult.xml.url.replace(uploadResult.xml.cid, '')
       };
       setIPFSResult(ipfs);
       
-      // Step 5: Executing Chainlink Functions
-      await processStep(4, 2500);
+      // Step 6: Executing Chainlink Functions
+      await processStep(5, 2500);
       
-      // Step 6: Verifying laboratory credentials
-      await processStep(5, 2000);
+      // Step 7: Verifying laboratory credentials
+      await processStep(6, 2000);
       
-      // Step 7: Creating blockchain transaction
-      await processStep(6, 1800);
+      // Step 8: Creating blockchain transaction
+      await processStep(7, 1800);
       
-      // Step 8: Finalizing digital certificate
-      await processStep(7, 1200);
+      // Step 9: Finalizing digital certificate
+      await processStep(8, 1200);
       
       // Generate final transaction hash
       const txHash = generateTransactionHash();
@@ -146,7 +217,7 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
 
         <div className="p-8">
           {/* File Info */}
-          <div className="bg-gray-50 rounded-lg p-4 mb-8">
+          <div className="bg-gray-50 rounded-lg p-4 mb-6">
             <div className="flex items-center space-x-3">
               <div className="bg-calibra-blue-100 rounded-lg p-2">
                 <span className="text-calibra-blue-600 text-sm font-medium">XML</span>
@@ -159,6 +230,30 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
               </div>
             </div>
           </div>
+
+          {/* Image Upload */}
+          {showImageUpload && (
+            <div className="mb-8">
+              <ImageUpload
+                onImageSelect={setSelectedImage}
+                selectedImage={selectedImage}
+                disabled={hasStarted}
+              />
+              
+              {/* Action Buttons */}
+              <div className="flex justify-center space-x-4 mt-6">
+                <button
+                  onClick={() => {
+                    setShowImageUpload(false);
+                    processWorkflow();
+                  }}
+                  className="px-6 py-3 bg-calibra-blue-900 text-white rounded-lg hover:bg-calibra-blue-800 transition-colors font-medium"
+                >
+                  {selectedImage ? 'Process with Image' : 'Process without Image'}
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Processing Steps */}
           <div className="space-y-4 mb-8">
@@ -280,7 +375,7 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
 
               {/* Next Steps */}
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <h6 className="font-medium text-yellow-800 mb-2">What's Next?</h6>
+                <h6 className="font-medium text-yellow-800 mb-2">What&apos;s Next?</h6>
                 <ul className="text-sm text-yellow-700 space-y-1">
                   <li>• Your certificate is now permanently stored on the blockchain</li>
                   <li>• Use the transaction hash to verify authenticity</li>
