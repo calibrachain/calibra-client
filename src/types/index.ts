@@ -11,7 +11,6 @@ export interface CertificateData {
     name: string;
     serialNumber: string;
     certificate: string;
-    certificateLink?: string;
   }>;
   
   // DCC-specific fields

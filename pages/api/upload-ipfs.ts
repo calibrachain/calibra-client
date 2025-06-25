@@ -1,8 +1,8 @@
-import { NextApiRequest, NextApiResponse } from "next";
-import { pinata } from "../../src/utils/config"
-import type { UploadResponse } from "pinata";
 import formidable from 'formidable';
 import fs from 'fs';
+import { NextApiRequest, NextApiResponse } from "next";
+import type { UploadResponse } from "pinata";
+import { pinata } from "../../src/utils/config";
 
 // Disable body parsing for multipart/form-data
 export const config = {

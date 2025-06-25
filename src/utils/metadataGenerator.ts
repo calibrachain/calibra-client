@@ -10,7 +10,7 @@ export interface NFTMetadata {
     trait_type: string;
     value: string;
   }>;
-  measuring_equipments: Array<{
+  measurement_equipment: Array<{
     name: string;
     identifications: Array<{
       type: string;
@@ -34,10 +34,10 @@ export const generateMetadataFromTemplate = (
   expirationDate.setFullYear(expirationDate.getFullYear() + 1);
   
   // Create certificate name
-  const certificateName = `Certificado de Calibração #${certificateData.certificateId}`;
+  const certificateName = `Calibration Certificate #${certificateData.certificateId}`;
   
   // Create description
-  const description = `Certificado para o ${certificateData.itemName} modelo ${certificateData.itemModel} da ${certificateData.customerName}.`;
+  const description = `Certificate for ${certificateData.itemName} model ${certificateData.itemModel} from ${certificateData.customerName}.`;
   
   // Get instrument name
   const instrumentName = `${certificateData.itemName} ${certificateData.itemModel}`;
@@ -46,10 +46,9 @@ export const generateMetadataFromTemplate = (
   const referenceStandards = certificateData.standards || [];
   const firstStandard = referenceStandards[0];
   const referenceCertificateName = firstStandard ? 
-    `Certificado de Calibração #${firstStandard.certificate}` : 
-    "Padrão de Referência";
+    `Calibration Certificate #${firstStandard.certificate}` : 
+    "Reference Standard";
   const referenceSerial = firstStandard ? firstStandard.serialNumber : "";
-  const onchainAddress = firstStandard?.certificateLink || "";
   
   // Define all the replacements
   const replacements: Record<string, string> = {
@@ -64,7 +63,7 @@ export const generateMetadataFromTemplate = (
     '{{SERIAL_NUMBER}}': certificateData.serialNumber,
     '{{REFERENCE_CERTIFICATE_NAME}}': referenceCertificateName,
     '{{REFERENCE_SERIAL}}': referenceSerial,
-    '{{ONCHAIN_ADDRESS}}': onchainAddress
+    '{{ONCHAIN_ADDRESS}}': "" // Empty by default
   };
 
   // Replace all placeholders
