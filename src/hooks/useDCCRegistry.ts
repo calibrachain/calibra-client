@@ -66,12 +66,35 @@ export function useDCCRegistry(): UseDCCRegistryReturn {
       const bytesArgs: string[] = [];
 
       console.log('🔗 Sending certificate request to DCCRegistry...');
+      console.log('Contract Address:', await contract.getAddress());
       console.log('Args:', args);
-      console.log('Client Address:', request.clienteAddress);
-      console.log('Token URI:', request.tokenURI);
-      console.log('Lab Identifier:', request.labIdentifier);
+      console.log('Args Length:', args.length);
+      console.log('BytesArgs:', bytesArgs);
+      console.log('Wallet Address:', address);
+      console.log('Chain ID:', chainId);
+
+      // First, let's check if the contract has the required functions
+      console.log('🔍 Checking contract owner...');
+      try {
+        const owner = await contract.owner();
+        console.log('Contract Owner:', owner);
+        console.log('Is caller owner?', owner.toLowerCase() === address.toLowerCase());
+      } catch (ownerError) {
+        console.log('❌ Error checking owner:', ownerError);
+      }
+
+      // Try to estimate gas first to see if the transaction would succeed
+      console.log('⛽ Estimating gas...');
+      try {
+        const gasEstimate = await contract.sendRequest.estimateGas(args, bytesArgs);
+        console.log('Gas Estimate:', gasEstimate.toString());
+      } catch (gasError) {
+        console.error('❌ Gas estimation failed:', gasError);
+        throw new Error(`Transaction would fail: ${gasError instanceof Error ? gasError.message : 'Unknown gas error'}`);
+      }
 
       // Call the sendRequest function
+      console.log('📝 Sending transaction...');
       const tx = await contract.sendRequest(args, bytesArgs);
       
       console.log('📤 Transaction sent:', tx.hash);
@@ -103,7 +126,29 @@ export function useDCCRegistry(): UseDCCRegistryReturn {
 
     } catch (err) {
       console.error('❌ Certificate request failed:', err);
-      setError(err instanceof Error ? err.message : 'Unknown error occurred');
+      
+      let errorMessage = 'Unknown error occurred';
+      
+      if (err instanceof Error) {
+        errorMessage = err.message;
+        
+        // Check for specific contract errors
+        if (errorMessage.includes('execution reverted')) {
+          errorMessage = 'Smart contract rejected the transaction. This could be because:\n' +
+                        '• You are not the contract owner\n' +
+                        '• The contract is not properly configured\n' +
+                        '• Invalid parameters were provided\n' +
+                        '• The contract is paused or has restrictions';
+        } else if (errorMessage.includes('user rejected')) {
+          errorMessage = 'Transaction was rejected by user';
+        } else if (errorMessage.includes('insufficient funds')) {
+          errorMessage = 'Insufficient AVAX balance to pay for transaction fees';
+        } else if (errorMessage.includes('nonce too low')) {
+          errorMessage = 'Transaction nonce error. Please try again.';
+        }
+      }
+      
+      setError(errorMessage);
       return null;
     } finally {
       setIsLoading(false);
