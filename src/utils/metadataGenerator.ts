@@ -46,9 +46,10 @@ export const generateMetadataFromTemplate = (
   const referenceStandards = certificateData.standards || [];
   const firstStandard = referenceStandards[0];
   const referenceCertificateName = firstStandard ? 
-    `Calibration Certificate #${firstStandard.certificate}` : 
+    firstStandard.name : 
     "Reference Standard";
   const referenceSerial = firstStandard ? firstStandard.serialNumber : "";
+  const onchainAddress = firstStandard ? (firstStandard.onchainAddress || "") : "";
   
   // Define all the replacements
   const replacements: Record<string, string> = {
@@ -63,7 +64,7 @@ export const generateMetadataFromTemplate = (
     '{{SERIAL_NUMBER}}': certificateData.serialNumber,
     '{{REFERENCE_CERTIFICATE_NAME}}': referenceCertificateName,
     '{{REFERENCE_SERIAL}}': referenceSerial,
-    '{{ONCHAIN_ADDRESS}}': "" // Empty by default
+    '{{ONCHAIN_ADDRESS}}': onchainAddress
   };
 
   // Replace all placeholders

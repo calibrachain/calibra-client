@@ -111,7 +111,7 @@
                     </dcc:identifications>
                     <dcc:certificate>
                         <dcc:referenceID>CAL-STD-2023-456</dcc:referenceID>
-                        <dcc:reference>https://silver-academic-raccoon-372.mypinata.cloud/ipfs/bafkreifdylekigwgumda6mhh6assej3eynlzoxnsyiclpm4lscf6m3lqxe</dcc:reference>
+                        <dcc:reference>"eip155:1/erc721:0xa5409ec958c83c3f309868babaca7c86dcb077c1/789"</dcc:reference>
                     </dcc:certificate>
                 </dcc:measuringEquipment>
             </dcc:measuringEquipments>

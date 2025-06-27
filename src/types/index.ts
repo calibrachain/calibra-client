@@ -11,6 +11,7 @@ export interface CertificateData {
     name: string;
     serialNumber: string;
     certificate: string;
+    onchainAddress?: string;
   }>;
   
   // DCC-specific fields
