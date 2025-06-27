@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useAccount } from 'wagmi';
 
 export interface TransactionStatus {
   hash?: string;
@@ -29,6 +30,8 @@ export interface UseTransactionManagerReturn {
 }
 
 export function useTransactionManager(): UseTransactionManagerReturn {
+  const { address } = useAccount();
+  
   const [currentTransaction, setCurrentTransaction] = useState<TransactionStatus>({
     status: 'idle'
   });

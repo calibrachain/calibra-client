@@ -188,17 +188,9 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
       console.error('Processing failed:', error);
       
       // Update transaction status with error
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      transactionManager.failTransaction(errorMessage);
-      
-      // Show detailed error information
-      if (errorMessage.includes('execution reverted')) {
-        console.log('🚨 Contract execution reverted. Possible reasons:');
-        console.log('• User is not the contract owner');
-        console.log('• Contract not properly configured'); 
-        console.log('• Invalid parameters');
-        console.log('• Missing required setup (source code, NFT contract, etc.)');
-      }
+      transactionManager.failTransaction(
+        error instanceof Error ? error.message : 'Unknown error occurred'
+      );
       
       onComplete(false);
     }

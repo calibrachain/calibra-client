@@ -15,15 +15,18 @@ const ContractConfig: React.FC<ContractConfigProps> = () => {
   };
 
   const isContractDeployed = () => {
-    return chainId === 43113; // Contract is deployed on Fuji testnet
+    const address = getContractAddress();
+    return address && address !== "0x0000000000000000000000000000000000000000";
   };
 
   const getChainName = () => {
     switch (chainId) {
+      case 43114:
+        return 'Avalanche C-Chain';
       case 43113:
         return 'Avalanche Fuji Testnet';
       default:
-        return 'Unsupported Network (Please switch to Fuji Testnet)';
+        return 'Unknown Network';
     }
   };
 

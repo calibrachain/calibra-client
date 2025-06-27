@@ -6,6 +6,17 @@
   "license": "MIT",
   "blockchain": {
     "networks": {
+      "avalanche": {
+        "chainId": 43114,
+        "name": "Avalanche C-Chain",
+        "rpcUrl": "https://api.avax.network/ext/bc/C/rpc",
+        "explorer": "https://snowtrace.io",
+        "nativeCurrency": {
+          "name": "AVAX",
+          "symbol": "AVAX",
+          "decimals": 18
+        }
+      },
       "fuji": {
         "chainId": 43113,
         "name": "Avalanche Fuji Testnet",
@@ -29,7 +40,8 @@
         "Request management"
       ],
       "deployments": {
-        "43113": "0xf134b34ed7542Fc028cA35Cd861153A003EbE4Eb"
+        "43114": "0x0000000000000000000000000000000000000000",
+        "43113": "0x0000000000000000000000000000000000000000"
       }
     },
     "DCCNFT": {
