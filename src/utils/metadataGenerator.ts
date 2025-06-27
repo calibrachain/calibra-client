@@ -1,5 +1,5 @@
 import { CertificateData } from '../types';
-import metadataTemplate from './metadata-template.json';
+import metadataTemplate from './metadatas/metadata-template.json';
 
 export interface NFTMetadata {
   name: string;

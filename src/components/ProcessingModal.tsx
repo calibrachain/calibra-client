@@ -1,11 +1,13 @@
 import { CheckCircle, Clock, Copy, ExternalLink, Hash, RotateCcw, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useAccount } from 'wagmi';
+import { useDCCRegistry } from '../hooks/useDCCRegistry';
+import { useTransactionManager } from '../hooks/useTransactionManager';
 import { CertificateData, IPFSUploadResult, ProcessingStep } from '../types';
 import { processAndGenerateMetadata } from '../utils/metadataGenerator';
-import { generateTransactionHash } from '../utils/mockData';
 import { parseXMLFile } from '../utils/xmlParser';
 import ImageUpload from './ImageUpload';
+import TransactionStatusDisplay from './TransactionStatusDisplay';
 
 interface ProcessingModalProps {
   selectedFile: File;
@@ -20,7 +22,9 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
   onClose, 
   isOpen 
 }) => {
-  const { address } = useAccount();
+  const { address, chainId } = useAccount();
+  const dccRegistry = useDCCRegistry();
+  const transactionManager = useTransactionManager();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [steps, setSteps] = useState<ProcessingStep[]>([
     { message: 'Reading XML file...', completed: false },
@@ -29,8 +33,7 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
     { message: 'Uploading files to IPFS...', completed: false },
     { message: 'Uploading metadata to IPFS...', completed: false },
     { message: 'Executing Chainlink Functions...', completed: false },
-    { message: 'Verifying laboratory credentials...', completed: false },
-    { message: 'Creating blockchain transaction...', completed: false },
+    { message: 'Verifying laboratory credentials & Creating blockchain transaction...', completed: false },
     { message: 'Finalizing digital certificate...', completed: false }
   ]);
   
@@ -154,26 +157,41 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
       console.log('labDetails:', chainlinkFunctionData.labDetails);
       console.log('================================');
       
-      // TODO: Call Chainlink Functions with the data above
-      // Example: await callChainlinkFunction(chainlinkFunctionData);
+      // Step 7: Verifying laboratory credentials & Creating blockchain transaction
+      await processStep(6, 1500);
       
-      // Step 7: Verifying laboratory credentials
-      await processStep(6, 2000);
+      // Start transaction monitoring
+      transactionManager.startTransaction();
       
-      // Step 8: Creating blockchain transaction
-      await processStep(7, 1800);
+      // Call DCCRegistry contract
+      console.log('🔗 Calling DCCRegistry contract...');
+      const requestId = await dccRegistry.sendCertificateRequest(chainlinkFunctionData);
       
-      // Step 9: Finalizing digital certificate
-      await processStep(8, 1200);
-      
-      // Generate final transaction hash
-      const txHash = generateTransactionHash();
-      setTransactionHash(txHash);
-      setIsComplete(true);
-      onComplete(true, txHash);
+      if (requestId) {
+        console.log('✅ Chainlink Functions request sent:', requestId);
+        transactionManager.updateTransaction({ 
+          hash: requestId,
+          status: 'success'
+        });
+        
+        // Step 8: Finalizing digital certificate
+        await processStep(7, 1200);
+        
+        setTransactionHash(requestId);
+        setIsComplete(true);
+        onComplete(true, requestId);
+      } else {
+        throw new Error('Failed to send certificate request to blockchain');
+      }
       
     } catch (error) {
       console.error('Processing failed:', error);
+      
+      // Update transaction status with error
+      transactionManager.failTransaction(
+        error instanceof Error ? error.message : 'Unknown error occurred'
+      );
+      
       onComplete(false);
     }
   };
@@ -300,6 +318,15 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
               </div>
             ))}
           </div>
+
+          {/* Transaction Status */}
+          {transactionManager.currentTransaction.status !== 'idle' && (
+            <TransactionStatusDisplay 
+              transaction={transactionManager.currentTransaction}
+              chainId={chainId}
+              className="mb-6"
+            />
+          )}
 
           {/* Results Section */}
           {isComplete && transactionHash && (

@@ -1,0 +1,97 @@
+{
+  "name": "CaliBra Digital Certificate System",
+  "description": "A blockchain-based digital calibration certificate system built on Avalanche",
+  "version": "1.0.0",
+  "author": "CaliBra Team",
+  "license": "MIT",
+  "blockchain": {
+    "networks": {
+      "fuji": {
+        "chainId": 43113,
+        "name": "Avalanche Fuji Testnet",
+        "rpcUrl": "https://api.avax-test.network/ext/bc/C/rpc",
+        "explorer": "https://testnet.snowtrace.io",
+        "nativeCurrency": {
+          "name": "AVAX",
+          "symbol": "AVAX",
+          "decimals": 18
+        }
+      }
+    }
+  },
+  "contracts": {
+    "DCCRegistry": {
+      "description": "Master contract for managing digital calibration certificates",
+      "features": [
+        "Chainlink Functions integration",
+        "Laboratory verification",
+        "NFT minting orchestration",
+        "Request management"
+      ],
+      "deployments": {
+        "43113": "0xf134b34ed7542Fc028cA35Cd861153A003EbE4Eb"
+      }
+    },
+    "DCCNFT": {
+      "description": "ERC721 contract for digital calibration certificate NFTs",
+      "standard": "ERC721",
+      "features": [
+        "Metadata storage",
+        "Transfer restrictions",
+        "Verification records"
+      ]
+    }
+  },
+  "integrations": {
+    "chainlink": {
+      "functions": {
+        "description": "Off-chain laboratory verification",
+        "subscriptionId": null,
+        "donId": null
+      },
+      "oracles": {
+        "description": "Laboratory credential verification"
+      }
+    },
+    "ipfs": {
+      "provider": "Pinata",
+      "description": "Decentralized storage for certificates and metadata"
+    }
+  },
+  "features": {
+    "certificateProcessing": {
+      "xmlParsing": "DCC (Digital Calibration Certificate) XML format support",
+      "metadataGeneration": "NFT metadata generation from certificate data",
+      "ipfsUpload": "Decentralized storage of certificates and images"
+    },
+    "verification": {
+      "laboratoryValidation": "Chainlink Functions-based laboratory verification",
+      "onchainReferences": "Cross-reference verification with existing certificates",
+      "immutableRecords": "Blockchain-based immutable certificate records"
+    },
+    "userInterface": {
+      "dragAndDrop": "Easy file upload interface",
+      "realTimeProgress": "Live processing status updates",
+      "transactionTracking": "Blockchain transaction monitoring"
+    }
+  },
+  "dataFlow": {
+    "steps": [
+      "User uploads DCC XML file",
+      "Frontend parses certificate data",
+      "IPFS upload for certificate and metadata",
+      "DCCRegistry initiates Chainlink Functions request",
+      "Laboratory verification via external API",
+      "NFT minting upon successful verification",
+      "Certificate available on blockchain"
+    ]
+  },
+  "security": {
+    "features": [
+      "Wallet-based authentication",
+      "Smart contract access controls",
+      "Laboratory verification requirements",
+      "Immutable certificate records"
+    ]
+  }
+}

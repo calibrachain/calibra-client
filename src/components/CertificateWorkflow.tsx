@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAccount } from 'wagmi';
+import ContractConfig from './ContractConfig';
 import FileUpload from './FileUpload';
 import ProcessingModal from './ProcessingModal';
 
@@ -90,6 +91,13 @@ const CertificateWorkflow: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Contract Status */}
+        {isConnected && (
+          <div className="mb-8">
+            <ContractConfig />
+          </div>
+        )}
 
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
