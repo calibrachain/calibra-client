@@ -28,7 +28,7 @@ export function useDCCRegistry(): UseDCCRegistryReturn {
     }
 
     const contractAddress = DCCRegistryAddresses[chainId as keyof typeof DCCRegistryAddresses];
-    if (!contractAddress || contractAddress === "0x0000000000000000000000000000000000000000") {
+    if (!contractAddress) {
       throw new Error(`DCCRegistry not deployed on chain ${chainId}`);
     }
 
