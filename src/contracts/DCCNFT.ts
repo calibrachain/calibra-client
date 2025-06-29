@@ -127,7 +127,7 @@ export const DCCNFTAddresses = {
   // Avalanche C-Chain
   43114: "",
   // Avalanche Fuji Testnet
-  43113: "0xb2fb1e6a96599e988385e0c368326159713db7dc",
+  43113: "0x8f139E6D41B3C87f06cB2BFd74754Dd747A40787",
 } as const;
 
 export interface NFTInfo {
