@@ -221,21 +221,17 @@ calibra-client/
 
 ### Common Issues
 
-1. **"EROFS: read-only file system"**:
-   - This was fixed - all files now go directly to IPFS
-   - No local file system writes in production
-
-2. **Wallet Connection Issues**:
+1. **Wallet Connection Issues**:
    - Ensure MetaMask is installed
    - Check network is Avalanche C-Chain
    - Verify WalletConnect Project ID
 
-3. **IPFS Upload Failures**:
+2. **IPFS Upload Failures**:
    - Check Pinata JWT token validity
    - Verify gateway URL format
    - Ensure API key has proper permissions
 
-4. **Transaction Failures**:
+3. **Transaction Failures**:
    - Check AVAX balance for gas fees
    - Verify contract addresses
    - Ensure proper network selection
