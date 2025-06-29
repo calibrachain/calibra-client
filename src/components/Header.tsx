@@ -1,5 +1,5 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { CheckCircle, Menu, Shield, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import React, { useState } from 'react';
 import { NetworkIndicator } from './NetworkIndicator';
 

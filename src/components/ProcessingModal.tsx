@@ -73,7 +73,7 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
       
       // Step 3: Creating NFT metadata
       await processStep(2, 1800);
-      const metadataResult = await processAndGenerateMetadata(data, false);
+      const metadataResult = await processAndGenerateMetadata(data);
       
       // Hide image upload after processing starts
       setShowImageUpload(false);

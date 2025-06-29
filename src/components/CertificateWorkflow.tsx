@@ -22,7 +22,6 @@ const CertificateWorkflow: React.FC = () => {
     console.log('✅ Certificate processing completed:', { 
       success, 
       transactionHash: hash,
-      note: 'This hash is the blockchain transaction hash, NOT the Chainlink request ID',
       message: success ? 'Certificate successfully created on blockchain!' : 'Certificate processing failed'
     });
   };

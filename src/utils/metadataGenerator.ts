@@ -76,48 +76,42 @@ export const generateMetadataFromTemplate = (
   return JSON.parse(metadataString) as NFTMetadata;
 };
 
-export const saveMetadataToFile = async (metadata: NFTMetadata, certificateId: string): Promise<string> => {
+export const uploadMetadataToIPFS = async (metadata: NFTMetadata, folderName?: string): Promise<{ url: string; cid: string }> => {
   try {
-    const filename = `metadata-${certificateId}-${Date.now()}.json`;
-    const response = await fetch('/api/save-file', {
+    const response = await fetch('/api/upload-metadata', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        filename,
-        content: JSON.stringify(metadata, null, 2)
+        metadata,
+        folderName
       })
     });
 
     if (!response.ok) {
-      throw new Error('Failed to save metadata file');
+      throw new Error('Failed to upload metadata to IPFS');
     }
 
     const result = await response.json();
-    return result.url;
+    return {
+      url: result.metadata.url,
+      cid: result.metadata.cid
+    };
   } catch (error) {
-    console.error('Error saving metadata file:', error);
+    console.error('Error uploading metadata to IPFS:', error);
     throw error;
   }
 };
 
 export const processAndGenerateMetadata = async (
   certificateData: CertificateData,
-  uploadToIPFS = false,
   imageUrl?: string,
   certificateFileUrl?: string
-): Promise<{ metadata: NFTMetadata; url?: string; ipfsHash?: string }> => {
+): Promise<{ metadata: NFTMetadata }> => {
   const metadata = generateMetadataFromTemplate(certificateData, imageUrl, certificateFileUrl);
   
-  let url: string | undefined;
-
-  if (!uploadToIPFS) {
-    url = await saveMetadataToFile(metadata, certificateData.certificateId);
-  }
-
   return {
-    metadata,
-    url
+    metadata
   };
 };

@@ -52,6 +52,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       type: xmlFile.mimetype || 'application/xml'
     });
 
+    console.log('Uploading XML file to Pinata...');
+    console.log('XML file size:', xmlBuffer.length, 'bytes');
+
     // Upload XML file with folder metadata
     const xmlUpload = await pinata.upload.public.file(xmlFileObject, {
       metadata: {
@@ -64,6 +67,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
     });
+
+    console.log('XML upload successful:', xmlUpload.cid);
 
     let imageUpload: UploadResponse | null = null;
     
@@ -116,10 +121,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json(response);
     
   } catch (e) {
-    console.error('Upload error:', e);
+    console.error('Upload error details:', {
+      message: e instanceof Error ? e.message : 'Unknown error',
+      stack: e instanceof Error ? e.stack : undefined,
+      name: e instanceof Error ? e.name : 'Unknown',
+      timestamp: new Date().toISOString()
+    });
+    
     return res.status(500).json({
       error: "Internal Server Error", 
-      details: e instanceof Error ? e.message : 'Unknown error'
+      details: e instanceof Error ? e.message : 'Unknown error',
+      timestamp: new Date().toISOString()
     });
   }
 }
