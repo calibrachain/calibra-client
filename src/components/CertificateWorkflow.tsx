@@ -102,6 +102,17 @@ const CertificateWorkflow: React.FC = () => {
             Simply drag and drop your XML calibration certificate below. Our system will automatically process it, 
             verify the laboratory credentials, and create your secure digital certificate.
           </p>
+          
+          {/* Simple download link */}
+          <div className="mt-6">
+            <a
+              href="/dcc_example.xml"
+              download="dcc_example.xml"
+              className="text-calibra-blue-600 hover:text-calibra-blue-700 underline text-sm"
+            >
+              Download here a XML model
+            </a>
+          </div>
         </div>
 
         <FileUpload
