@@ -13,8 +13,7 @@ const Header: React.FC = () => {
           {/* Logo */}
           <div className="flex items-center space-x-3">
             <div className="relative">
-              <Shield className="h-8 w-8 text-calibra-blue-900" />
-              <CheckCircle className="h-4 w-4 text-calibra-green-500 absolute -top-1 -right-1" />
+              <img src="favicon.ico" className='w-10 h-10'/>
             </div>
             <div className="flex flex-col">
               <span className="text-xl font-bold text-calibra-blue-900">CALIBRA</span>
@@ -22,21 +21,6 @@ const Header: React.FC = () => {
             </div>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <a href="#" className="text-gray-700 hover:text-calibra-blue-900 font-medium transition-colors">
-              Home
-            </a>
-            <a href="#" className="text-gray-700 hover:text-calibra-blue-900 font-medium transition-colors">
-              Certificates
-            </a>
-            <a href="#" className="text-gray-700 hover:text-calibra-blue-900 font-medium transition-colors">
-              Laboratories
-            </a>
-            <a href="#" className="text-gray-700 hover:text-calibra-blue-900 font-medium transition-colors">
-              Support
-            </a>
-          </nav>
 
           {/* Connect Wallet Button */}
           <div className="hidden md:flex items-center space-x-4">
@@ -59,18 +43,6 @@ const Header: React.FC = () => {
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-gray-200">
             <div className="flex flex-col space-y-4">
-              <a href="#" className="text-gray-700 hover:text-calibra-blue-900 font-medium transition-colors">
-                Home
-              </a>
-              <a href="#" className="text-gray-700 hover:text-calibra-blue-900 font-medium transition-colors">
-                Certificates
-              </a>
-              <a href="#" className="text-gray-700 hover:text-calibra-blue-900 font-medium transition-colors">
-                Laboratories
-              </a>
-              <a href="#" className="text-gray-700 hover:text-calibra-blue-900 font-medium transition-colors">
-                Support
-              </a>
               <ConnectButton />
             </div>
           </div>

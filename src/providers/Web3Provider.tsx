@@ -35,6 +35,7 @@ export function Web3Provider({ children }: Web3ProviderProps) {
           theme={calibraTheme}
           coolMode
           showRecentTransactions={true}
+          locale="en-US"
         >
           {children}
         </RainbowKitProvider>
