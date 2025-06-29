@@ -34,8 +34,8 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
     { message: 'Creating NFT metadata...', completed: false },
     { message: 'Uploading files to IPFS...', completed: false },
     { message: 'Uploading metadata to IPFS...', completed: false },
-    { message: 'Executing Chainlink Functions...', completed: false },
     { message: 'Verifying laboratory credentials & Creating blockchain transaction...', completed: false },
+    { message: 'Executing Chainlink Functions...', completed: false },
     { message: 'Searching for minted NFT...', completed: false },
     { message: 'Finalizing digital certificate...', completed: false }
   ]);
@@ -138,23 +138,16 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
       setIPFSResult(ipfs);
       setNftMetadataUrl(metadataUploadResult.metadata.url);
       
-      // Step 6: Executing Chainlink Functions
-      await processStep(5, 2500);
       
-      // Prepare data for Chainlink Functions
-      console.log('CertificateData for Chainlink:', data);
+      
+
       const chainlinkFunctionData = {
         accreditationNumber: data?.accreditationNumber,
         tokenURI: metadataUploadResult.metadata.url,
       };
       
-      console.log('=== CHAINLINK FUNCTIONS DATA ===');
-      console.log('tokenURI:', chainlinkFunctionData.tokenURI);
-      console.log('accreditationNumber:', chainlinkFunctionData.accreditationNumber);
-      console.log('================================');
-      
-      // Step 7: Verifying laboratory credentials & Creating blockchain transaction
-      await processStep(6, 1500);
+      // Step 6: Verifying laboratory credentials & Creating blockchain transaction
+      await processStep(5, 1500);
       
       // Start transaction monitoring
       transactionManager.startTransaction();
@@ -169,6 +162,9 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
           hash: transactionHash,
           status: 'success'
         });
+
+        // Step 7: Executing Chainlink Functions
+      await processStep(6, 2500);
         
         // Step 8: Searching for minted NFT
         await processStep(7, 2000);

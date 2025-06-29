@@ -1,4 +1,4 @@
-import { BrowserProvider, Contract, EventLog, JsonRpcProvider } from 'ethers';
+import { BrowserProvider, Contract, JsonRpcProvider } from 'ethers';
 import { useCallback, useState } from 'react';
 import { useAccount, usePublicClient, useWalletClient } from 'wagmi';
 import { DCCNFTABI, DCCNFTAddresses, type NFTInfo } from '../contracts/DCCNFT';
@@ -86,162 +86,61 @@ export function useDCCNFT(): UseDCCNFTReturn {
     return '';
   }, [chainId]);
 
-  // Method 1: Infura NFT API
-  const fetchNFTsViaInfura = useCallback(async (): Promise<NFTInfo[]> => {
-    if (!address || !chainId) {
-      throw new Error('Address or chain ID not available');
-    }
-
-    console.log('🔍 Fetching NFTs via Infura API...');
-    
-    try {
-      const contractAddress = DCCNFTAddresses[chainId as keyof typeof DCCNFTAddresses];
-      if (!contractAddress) {
-        throw new Error(`DCCNFT not deployed on chain ${chainId}`);
-      }
-
-      // Infura NFT API endpoint
-      const infuraApiKey = 'b28a7c9373494f7b97bb6ea7b04413de';
-      const network = chainId === 43113 ? 'avalanche-fuji' : 'avalanche-mainnet';
-      
-      // Get NFTs owned by user for specific contract
-      const url = `https://nft.api.infura.io/networks/${network}/accounts/${address}/assets/nfts`;
-      
-      console.log('📡 Calling Infura API:', url);
-      
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Basic ${btoa(`${infuraApiKey}:`)}`,
-          'Content-Type': 'application/json',
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Infura API error: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log('📦 Infura API Response:', data);
-
-      const nftInfos: NFTInfo[] = [];
-
-      // Filter for our specific contract
-      if (data.assets && Array.isArray(data.assets)) {
-        for (const asset of data.assets) {
-          if (asset.contract?.toLowerCase() === contractAddress.toLowerCase()) {
-            nftInfos.push({
-              tokenId: asset.tokenId,
-              tokenURI: asset.metadata?.tokenUri || asset.tokenUri || '',
-              snowtraceUrl: generateSnowtraceUrl(asset.tokenId)
-            });
-          }
-        }
-      }
-
-      // Sort by token ID descending (newest first)
-      nftInfos.sort((a, b) => parseInt(b.tokenId) - parseInt(a.tokenId));
-      
-      console.log(`✅ Found ${nftInfos.length} NFTs via Infura API`);
-      return nftInfos;
-    } catch (infuraError) {
-      console.warn('⚠️ Infura API failed:', infuraError);
-      throw infuraError;
-    }
-  }, [address, chainId, generateSnowtraceUrl]);
-
-  // Fallback: Event scanning approach
-  const fetchNFTsViaEvents = useCallback(async (): Promise<NFTInfo[]> => {
-    if (!address) {
-      throw new Error('Address not available');
-    }
-
-    console.log('🔍 Scanning events for NFTs...');
-    
-    try {
-      const contract = await getContract();
-      
-      // Get Transfer events where 'to' is the user's address
-      const transferFilter = contract.filters.Transfer(null, address, null);
-      const transferEvents = await contract.queryFilter(transferFilter, -1000); // Reduced to 1k blocks
-      
-      console.log(`📄 Found ${transferEvents.length} Transfer events`);
-      
-      const nftInfos: NFTInfo[] = [];
-      
-      for (const event of transferEvents) {
-        if (event instanceof EventLog && event.args) {
-          const tokenId = event.args[2].toString();
-          
-          try {
-            // Check if user still owns this token
-            const currentOwner = await contract.ownerOf(tokenId);
-            if (currentOwner.toLowerCase() === address.toLowerCase()) {
-              const tokenURI = await contract.tokenURI(tokenId);
-              
-              nftInfos.push({
-                tokenId,
-                tokenURI,
-                snowtraceUrl: generateSnowtraceUrl(tokenId)
-              });
-            }
-          } catch (err) {
-            console.warn(`⚠️ Error processing token ${tokenId}:`, err);
-          }
-        }
-      }
-      
-      // Sort by token ID descending (newest first)
-      nftInfos.sort((a, b) => parseInt(b.tokenId) - parseInt(a.tokenId));
-      
-      console.log(`✅ Found ${nftInfos.length} NFTs via events`);
-      return nftInfos;
-    } catch (eventError) {
-      console.warn('⚠️ Event scanning failed:', eventError);
-      throw eventError;
-    }
-  }, [address, getContract, generateSnowtraceUrl]);
-
-  // Last resort: Direct contract scanning (optimized)
+  // Direct contract scanning - check tokens 0 to 50
   const fetchNFTsViaContract = useCallback(async (): Promise<NFTInfo[]> => {
     if (!address) {
       throw new Error('Address not available');
     }
 
-    console.log('🔍 Scanning contract directly for NFTs...');
+    console.log('🔍 Scanning contract directly for NFTs (0-50)...');
     
     try {
       const contract = await getContract();
       const nftInfos: NFTInfo[] = [];
+      const userTokenIds: number[] = [];
       
-      // Check only recent token IDs (most likely to exist and be user's)
-      const recentTokenIds = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-      
-      for (const tokenId of recentTokenIds) {
+      // Check tokens 0 to 50
+      for (let tokenId = 0; tokenId <= 50; tokenId++) {
         try {
           const owner = await contract.ownerOf(tokenId);
           if (owner.toLowerCase() === address.toLowerCase()) {
-            const tokenURI = await contract.tokenURI(tokenId);
-            
-            nftInfos.push({
-              tokenId: tokenId.toString(),
-              tokenURI,
-              snowtraceUrl: generateSnowtraceUrl(tokenId.toString())
-            });
+            userTokenIds.push(tokenId);
+            console.log(`✅ User owns token ID: ${tokenId}`);
           }
         } catch (err) {
-          // Token might not exist, skip
+          // Token might not exist or other error, skip
           continue;
         }
         
         // Add small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+      
+      console.log(`� User owns token IDs: [${userTokenIds.join(', ')}]`);
+      
+      // Get token details for all owned tokens
+      for (const tokenId of userTokenIds) {
+        try {
+          const tokenURI = await contract.tokenURI(tokenId);
+          
+          nftInfos.push({
+            tokenId: tokenId.toString(),
+            tokenURI,
+            snowtraceUrl: generateSnowtraceUrl(tokenId.toString())
+          });
+        } catch (err) {
+          console.warn(`⚠️ Error getting tokenURI for ${tokenId}:`, err);
+        }
       }
       
       // Sort by token ID descending (newest first)
       nftInfos.sort((a, b) => parseInt(b.tokenId) - parseInt(a.tokenId));
       
-      console.log(`✅ Found ${nftInfos.length} NFTs via optimized direct scanning`);
+      console.log(`✅ Found ${nftInfos.length} NFTs via direct scanning`);
+      if (nftInfos.length > 0) {
+        console.log(`🎯 Latest NFT: Token ID ${nftInfos[0].tokenId}`);
+      }
+      
       return nftInfos;
     } catch (contractError) {
       console.warn('⚠️ Direct contract scanning failed:', contractError);
@@ -257,47 +156,21 @@ export function useDCCNFT(): UseDCCNFTReturn {
     setIsLoading(true);
     setError(null);
     
-    let nftList: NFTInfo[] = [];
-    
     try {
-      // Strategy 1: Try Infura NFT API first (most efficient)
-      try {
-        nftList = await fetchNFTsViaInfura();
-        if (nftList.length > 0) {
-          setNfts(nftList);
-          return nftList;
-        }
-        console.log('📡 Infura API returned no NFTs, trying event scanning...');
-      } catch (infuraError) {
-        console.log('📡 Infura API failed, trying event scanning...');
-      }
-      
-      // Strategy 2: Try event scanning
-      try {
-        nftList = await fetchNFTsViaEvents();
-        if (nftList.length > 0) {
-          setNfts(nftList);
-          return nftList;
-        }
-        console.log('📄 Event scanning returned no NFTs, trying direct contract scanning...');
-      } catch (eventError) {
-        console.log('📄 Event scanning failed, trying direct contract scanning...');
-      }
-      
-      // Strategy 3: Try direct contract scanning (last resort)
-      nftList = await fetchNFTsViaContract();
+      // Use direct contract scanning only
+      const nftList = await fetchNFTsViaContract();
       setNfts(nftList);
       return nftList;
       
-    } catch (finalError) {
-      const errorMessage = finalError instanceof Error ? finalError.message : 'Unknown error occurred';
-      console.error('❌ All NFT fetching strategies failed:', finalError);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error('❌ NFT fetching failed:', error);
       setError(errorMessage);
       return [];
     } finally {
       setIsLoading(false);
     }
-  }, [address, chainId, fetchNFTsViaInfura, fetchNFTsViaEvents, fetchNFTsViaContract]);
+  }, [address, chainId, fetchNFTsViaContract]);
 
   const getLatestNFT = useCallback(async (): Promise<NFTInfo | null> => {
     try {
