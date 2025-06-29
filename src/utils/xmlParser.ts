@@ -64,6 +64,17 @@ interface DCCXMLData {
             'dcc:street': [string];
           }];
         }];
+        'dcc:accreditation'?: [{
+          'dcc:accreditationNumber': [string];
+          'dcc:accreditationBody'?: [{
+            'dcc:name': [{
+              'dcc:content': [{
+                _: string;
+                $: { lang: string };
+              }];
+            }];
+          }];
+        }];
       }];
       'dcc:customer': [{
         'dcc:name': [{
@@ -264,6 +275,10 @@ export const parseXMLFile = (xmlContent: string): Promise<CertificateData> => {
         const labCity = labLocation?.['dcc:city']?.[0] || '';
         const labPostalCode = labLocation?.['dcc:postCode']?.[0] || '';
         const labCountryCode = labLocation?.['dcc:countryCode']?.[0] || '';
+        
+        // Extract accreditation number from laboratory data
+        const labAccreditation = lab['dcc:accreditation']?.[0];
+        const labAccreditationNumber = labAccreditation?.['dcc:accreditationNumber']?.[0] || null;
 
         // Extract customer data
         const customerName = customer['dcc:name']?.[0]?.['dcc:content']?.[0]?._ || 'N/A';
@@ -296,8 +311,15 @@ export const parseXMLFile = (xmlContent: string): Promise<CertificateData> => {
         const measurementValue = measurementData?.['dcc:list']?.[0]?.['dcc:datum']?.[0]?.['dcc:measured']?.[0]?.['si:real']?.[0] || 'N/A';
         const measurementUncertainty = measurementData?.['dcc:list']?.[0]?.['dcc:datum']?.[0]?.['dcc:uncertainty']?.[0]?.['si:real']?.[0] || 'N/A';
 
-        // Extract measuring equipment data
+        // Extract measuring equipment data and accreditation number
         const measuringEquipments = measurementResult?.['dcc:measuringEquipments']?.[0]?.['dcc:measuringEquipment'] || [];
+        
+        // Determine accreditation number priority:
+        // 1. Laboratory accreditation number (from dcc:calibrationLaboratory/dcc:accreditation)
+        // 2. Equipment certificate reference ID (from dcc:measuringEquipment/dcc:certificate/dcc:referenceID)
+        // 3. Default fallback value
+        let accreditationNumber = labAccreditationNumber || '785';
+        
         const standards = measuringEquipments.map(equipment => {
           const equipmentName = equipment?.['dcc:name']?.[0]?.['dcc:content']?.[0]?._ || 'N/A';
           const equipmentModel = equipment?.['dcc:model']?.[0] || 'N/A';
@@ -305,6 +327,11 @@ export const parseXMLFile = (xmlContent: string): Promise<CertificateData> => {
           const certificateRef = equipment?.['dcc:certificate']?.[0];
           const referenceID = certificateRef?.['dcc:referenceID']?.[0] || 'N/A';
           const onchainReference = certificateRef?.['dcc:reference']?.[0]?.replace(/"/g, '') || ''; // Remove quotes
+          
+          // Use referenceID as accreditation number if no lab accreditation number found
+          if (!labAccreditationNumber && referenceID && referenceID !== 'N/A') {
+            accreditationNumber = referenceID;
+          }
           
           return {
             name: `${equipmentName} ${equipmentModel}`,
@@ -337,6 +364,7 @@ export const parseXMLFile = (xmlContent: string): Promise<CertificateData> => {
           
           // DCC-specific fields
           certificateId,
+          accreditationNumber,
           schemaVersion: dcc.$.schemaVersion || '2.4.0',
           countryCode,
           language,

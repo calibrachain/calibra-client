@@ -53,26 +53,17 @@ export function useDCCRegistry(): UseDCCRegistryReturn {
 
       // Prepare arguments for Chainlink Functions
       const args = [
-        request.labIdentifier,           // Laboratory identifier for verification
-        request.labDetails.name,         // Laboratory name
-        request.labDetails.email,        // Laboratory email
-        request.labDetails.location,     // Laboratory location
-        request.labDetails.countryCode,  // Laboratory country code
-        request.clienteAddress,          // Client address
-        request.tokenURI                 // Token URI (IPFS metadata)
+        request.accreditationNumber,// Accreditation number for laboratory verification
+        request.tokenURI            // Token URI (IPFS metadata)
       ];
-
-      // Additional bytes arguments (if needed in the future)
-      const bytesArgs: string[] = [];
 
       console.log('🔗 Sending certificate request to DCCRegistry...');
       console.log('Args:', args);
-      console.log('Client Address:', request.clienteAddress);
       console.log('Token URI:', request.tokenURI);
-      console.log('Lab Identifier:', request.labIdentifier);
+      console.log('Accreditation Number:', request.accreditationNumber);
 
-      // Call the sendRequest function
-      const tx = await contract.sendRequest(args, bytesArgs);
+      // Call the verifyAndMint function
+      const tx = await contract.verifyAndMint(args);
       
       console.log('📤 Transaction sent:', tx.hash);
       
@@ -81,7 +72,7 @@ export function useDCCRegistry(): UseDCCRegistryReturn {
       
       console.log('✅ Transaction confirmed:', receipt.hash);
 
-      // Extract request ID from events
+      // Extract request ID from events for internal tracking
       const requestSentEvent = receipt.logs.find((log: any) => {
         try {
           const parsed = contract.interface.parseLog(log);
@@ -91,15 +82,15 @@ export function useDCCRegistry(): UseDCCRegistryReturn {
         }
       });
 
-      let requestId: string | null = null;
       if (requestSentEvent) {
         const parsed = contract.interface.parseLog(requestSentEvent);
-        requestId = parsed?.args[0] || null;
+        const requestId = parsed?.args[0] || null;
         setLastRequestId(requestId);
         console.log('🆔 Request ID:', requestId);
       }
 
-      return requestId;
+      // Return the transaction hash, not the request ID
+      return tx.hash;
 
     } catch (err) {
       console.error('❌ Certificate request failed:', err);

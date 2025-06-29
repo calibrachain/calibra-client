@@ -1,4 +1,4 @@
-import { CheckCircle, Clock, Copy, ExternalLink, Hash, RotateCcw, X } from 'lucide-react';
+import { CheckCircle, Clock, Copy, Download, ExternalLink, RotateCcw, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useAccount } from 'wagmi';
 import { useDCCRegistry } from '../hooks/useDCCRegistry';
@@ -22,7 +22,7 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
   onClose, 
   isOpen 
 }) => {
-  const { address, chainId } = useAccount();
+  const { chainId } = useAccount();
   const dccRegistry = useDCCRegistry();
   const transactionManager = useTransactionManager();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -39,6 +39,7 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
   
   const [certificateData, setCertificateData] = useState<CertificateData | null>(null);
   const [ipfsResult, setIPFSResult] = useState<IPFSUploadResult | null>(null);
+  const [nftMetadataUrl, setNftMetadataUrl] = useState<string | null>(null);
   const [transactionHash, setTransactionHash] = useState<string | null>(null);
   const [isComplete, setIsComplete] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -131,6 +132,7 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
         gatewayUrl: uploadResult.xml.url.replace(uploadResult.xml.cid, '')
       };
       setIPFSResult(ipfs);
+      setNftMetadataUrl(metadataUploadResult.metadata.url);
       
       // Step 6: Executing Chainlink Functions
       await processStep(5, 2500);
@@ -138,23 +140,13 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
       // Prepare data for Chainlink Functions
       console.log('CertificateData for Chainlink:', data);
       const chainlinkFunctionData = {
-        clienteAddress: address || 'No wallet connected',
-        tokenURI: `ipfs://${metadataUploadResult.metadata.cid}`,
-        labIdentifier: data?.labName || 'Unknown Laboratory',
-        // Additional lab data for verification
-        labDetails: {
-          name: data?.labName || '',
-          email: data?.labEmail || '',
-          location: data?.labLocation || '',
-          countryCode: data?.labCountryCode || ''
-        }
+        accreditationNumber: data?.accreditationNumber,
+        tokenURI: metadataUploadResult.metadata.url,
       };
       
       console.log('=== CHAINLINK FUNCTIONS DATA ===');
-      console.log('clienteAddress:', chainlinkFunctionData.clienteAddress);
       console.log('tokenURI:', chainlinkFunctionData.tokenURI);
-      console.log('labIdentifier:', chainlinkFunctionData.labIdentifier);
-      console.log('labDetails:', chainlinkFunctionData.labDetails);
+      console.log('accreditationNumber:', chainlinkFunctionData.accreditationNumber);
       console.log('================================');
       
       // Step 7: Verifying laboratory credentials & Creating blockchain transaction
@@ -165,21 +157,21 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
       
       // Call DCCRegistry contract
       console.log('🔗 Calling DCCRegistry contract...');
-      const requestId = await dccRegistry.sendCertificateRequest(chainlinkFunctionData);
+      const transactionHash = await dccRegistry.sendCertificateRequest(chainlinkFunctionData);
       
-      if (requestId) {
-        console.log('✅ Chainlink Functions request sent:', requestId);
+      if (transactionHash) {
+        console.log('✅ Transaction sent successfully:', transactionHash);
         transactionManager.updateTransaction({ 
-          hash: requestId,
+          hash: transactionHash,
           status: 'success'
         });
         
         // Step 8: Finalizing digital certificate
         await processStep(7, 1200);
         
-        setTransactionHash(requestId);
+        setTransactionHash(transactionHash);
         setIsComplete(true);
-        onComplete(true, requestId);
+        onComplete(true, transactionHash);
       } else {
         throw new Error('Failed to send certificate request to blockchain');
       }
@@ -338,77 +330,126 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
                 <p className="text-gray-600">Your digital calibration certificate has been created and stored on the blockchain</p>
               </div>
 
-              {/* Transaction Hash */}
-              <div className="bg-calibra-green-50 border border-calibra-green-200 rounded-lg p-6">
-                <div className="flex items-center space-x-3 mb-4">
-                  <Hash className="h-6 w-6 text-calibra-green-600" />
-                  <h5 className="font-semibold text-calibra-green-900">Transaction Hash</h5>
-                </div>
-                
-                <div className="bg-white border border-calibra-green-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <code className="text-sm text-calibra-green-800 break-all font-mono">
-                      {transactionHash}
-                    </code>
-                    <button
-                      onClick={() => copyToClipboard(transactionHash)}
-                      className="ml-4 p-2 text-calibra-green-600 hover:text-calibra-green-800 transition-colors"
-                      title="Copy hash"
+              {/* NFT Metadata URL */}
+              {nftMetadataUrl && (
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                  <div className="flex items-center space-x-3 mb-4">
+                    <ExternalLink className="h-6 w-6 text-purple-600" />
+                    <h5 className="font-semibold text-purple-900">NFT Certificate URL</h5>
+                  </div>
+                  
+                  <div className="bg-white border border-purple-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <code className="text-sm text-purple-800 break-all font-mono">
+                        {nftMetadataUrl}
+                      </code>
+                      <button
+                        onClick={() => copyToClipboard(nftMetadataUrl)}
+                        className="ml-4 p-2 text-purple-600 hover:text-purple-800 transition-colors"
+                        title="Copy URL"
+                      >
+                        {copied ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 flex space-x-4">
+                    <a
+                      href={nftMetadataUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center space-x-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
                     >
-                      {copied ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                    </button>
+                      <ExternalLink className="h-4 w-4" />
+                      <span>View NFT Metadata</span>
+                    </a>
+                    
+                    <a
+                      href={nftMetadataUrl}
+                      download={`nft-metadata-${certificateData?.certificateNumber || 'download'}.json`}
+                      className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium"
+                    >
+                      <Download className="h-4 w-4" />
+                      <span>Download</span>
+                    </a>
+                  </div>
+                  
+                  <div className="mt-3 p-3 bg-purple-100 rounded-lg">
+                    <p className="text-sm text-purple-800">
+                      <strong>This is your NFT metadata URL</strong> - it contains all the certificate information that was stored on the blockchain.
+                    </p>
                   </div>
                 </div>
-              </div>
+              )}
+
+              {/* Certificate URL */}
+              {ipfsResult && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                  <div className="flex items-center space-x-3 mb-4">
+                    <ExternalLink className="h-6 w-6 text-blue-600" />
+                    <h5 className="font-semibold text-blue-900">Original Certificate File URL</h5>
+                  </div>
+                  
+                  <div className="bg-white border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <code className="text-sm text-blue-800 break-all font-mono">
+                        {`${ipfsResult.gatewayUrl}${ipfsResult.fileHash}`}
+                      </code>
+                      <button
+                        onClick={() => copyToClipboard(`${ipfsResult.gatewayUrl}${ipfsResult.fileHash}`)}
+                        className="ml-4 p-2 text-blue-600 hover:text-blue-800 transition-colors"
+                        title="Copy URL"
+                      >
+                        {copied ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 flex space-x-4">
+                    <a
+                      href={`${ipfsResult.gatewayUrl}${ipfsResult.fileHash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      <span>View Original File</span>
+                    </a>
+                    
+                    <a
+                      href={`${ipfsResult.gatewayUrl}${ipfsResult.fileHash}`}
+                      download={`certificate-${certificateData?.certificateNumber || 'download'}.xml`}
+                      className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium"
+                    >
+                      <Download className="h-4 w-4" />
+                      <span>Download</span>
+                    </a>
+                  </div>
+                </div>
+              )}
 
               {/* Certificate Details */}
               {certificateData && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-calibra-blue-50 border border-calibra-blue-200 rounded-lg p-6">
-                    <h5 className="font-semibold text-calibra-blue-900 mb-4">Certificate Details</h5>
-                    <div className="space-y-2 text-sm">
-                      <div>
-                        <span className="font-medium text-calibra-blue-700">Number:</span>
-                        <span className="ml-2 text-calibra-blue-800">{certificateData.certificateNumber}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium text-calibra-blue-700">Laboratory:</span>
-                        <span className="ml-2 text-calibra-blue-800">{certificateData.laboratory}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium text-calibra-blue-700">Instrument:</span>
-                        <span className="ml-2 text-calibra-blue-800">{certificateData.instrument}</span>
-                      </div>
+                <div className="bg-calibra-blue-50 border border-calibra-blue-200 rounded-lg p-6">
+                  <h5 className="font-semibold text-calibra-blue-900 mb-4">Certificate Details</h5>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <span className="font-medium text-calibra-blue-700">Number:</span>
+                      <span className="ml-2 text-calibra-blue-800">{certificateData.certificateNumber}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-calibra-blue-700">Laboratory:</span>
+                      <span className="ml-2 text-calibra-blue-800">{certificateData.laboratory}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-calibra-blue-700">Instrument:</span>
+                      <span className="ml-2 text-calibra-blue-800">{certificateData.instrument}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-calibra-blue-700">Accreditation:</span>
+                      <span className="ml-2 text-calibra-blue-800">{certificateData.accreditationNumber}</span>
                     </div>
                   </div>
-
-                  {ipfsResult && (
-                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
-                      <h5 className="font-semibold text-purple-900 mb-4">IPFS Storage</h5>
-                      <div className="space-y-3">
-                        <div>
-                          <label className="block text-xs font-medium text-purple-700 mb-1">
-                            Certificate File
-                          </label>
-                          <div className="bg-white border border-purple-200 rounded px-2 py-1">
-                            <code className="text-xs text-purple-800 break-all">
-                              {ipfsResult.fileHash}
-                            </code>
-                          </div>
-                        </div>
-                        
-                        <a
-                          href={`${ipfsResult.gatewayUrl}${ipfsResult.fileHash}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center space-x-2 text-sm text-purple-600 hover:text-purple-800 transition-colors"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                          <span>View on IPFS</span>
-                        </a>
-                      </div>
-                    </div>
-                  )}
                 </div>
               )}
 

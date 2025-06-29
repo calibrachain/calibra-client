@@ -1,0 +1,40 @@
+{
+  "name": "Calibration Certificate #DCC-2024-001",
+  "description": "Certificate for Digital Multimeter model 34465A from ACME Corporation.",
+  "image": "",
+  "certificate_file": "",
+  "attributes": [
+    {
+      "trait_type": "Issuing Laboratory",
+      "value": "PTB Calibration Laboratory"
+    },
+    {
+      "trait_type": "Issue Date",
+      "value": "2024-01-15"
+    },
+    {
+      "trait_type": "Expiration Date",
+      "value": "2025-01-15"
+    },
+    {
+      "trait_type": "Calibrated Instrument",
+      "value": "Digital Multimeter 34465A"
+    },
+    {
+      "trait_type": "Serial Number",
+      "value": "MY57801234"
+    }
+  ],
+  "measurement_equipment": [
+    {
+      "name": "Precision Voltage Calibrator 5720A",
+      "identifications": [
+        {
+          "type": "serialNumber",
+          "value": "CAL-STD-2023-456"
+        }
+      ],
+      "onchain_address": "eip155:1/erc721:0xa5409ec958c83c3f309868babaca7c86dcb077c1/789"
+    }
+  ]
+}

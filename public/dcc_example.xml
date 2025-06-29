@@ -53,6 +53,14 @@
                     <dcc:street>Bundesallee 100</dcc:street>
                 </dcc:location>
             </dcc:contact>
+            <dcc:accreditation>
+                <dcc:accreditationNumber>785</dcc:accreditationNumber>
+                <dcc:accreditationBody>
+                    <dcc:name>
+                        <dcc:content lang="en">German Accreditation Body</dcc:content>
+                    </dcc:name>
+                </dcc:accreditationBody>
+            </dcc:accreditation>
         </dcc:calibrationLaboratory>
         <dcc:respPersons>
             <dcc:respPerson>

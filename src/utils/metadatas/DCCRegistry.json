@@ -1,5 +1,4 @@
-// DCCRegistry Contract ABI and Types
-export const DCCRegistryABI = [
+[
   {
     "inputs": [
       {
@@ -329,30 +328,4 @@ export const DCCRegistryABI = [
     "stateMutability": "nonpayable",
     "type": "function"
   }
-] as const;
-
-// Contract addresses for different networks
-export const DCCRegistryAddresses = {
-  // Avalanche C-Chain
-  43114: "",
-  // Avalanche Fuji Testnet
-  43113: "0x1bBc93F287Cba4630B53c6cB32779De75865F98B",
-} as const;
-
-// Types
-export interface RequestInfo {
-  requestTime: bigint;
-  returnedValue: bigint;
-  target: string;
-  isFulfilled: boolean;
-}
-
-export interface DCCRegistryRequest {
-  args: string[];
-  bytesArgs: string[];
-}
-
-export interface CertificateRequest {
-  tokenURI: string;
-  accreditationNumber: string;
-}
+]

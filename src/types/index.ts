@@ -16,6 +16,7 @@ export interface CertificateData {
   
   // DCC-specific fields
   certificateId: string;
+  accreditationNumber: string;
   schemaVersion: string;
   countryCode: string;
   language: string;
