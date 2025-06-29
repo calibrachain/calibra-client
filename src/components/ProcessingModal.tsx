@@ -1,6 +1,7 @@
 import { CheckCircle, Clock, Copy, Download, ExternalLink, RotateCcw, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useAccount } from 'wagmi';
+import { useDCCNFT } from '../hooks/useDCCNFT';
 import { useDCCRegistry } from '../hooks/useDCCRegistry';
 import { useTransactionManager } from '../hooks/useTransactionManager';
 import { CertificateData, IPFSUploadResult, ProcessingStep } from '../types';
@@ -24,6 +25,7 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
 }) => {
   const { chainId } = useAccount();
   const dccRegistry = useDCCRegistry();
+  const dccNFT = useDCCNFT();
   const transactionManager = useTransactionManager();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [steps, setSteps] = useState<ProcessingStep[]>([
@@ -34,12 +36,14 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
     { message: 'Uploading metadata to IPFS...', completed: false },
     { message: 'Executing Chainlink Functions...', completed: false },
     { message: 'Verifying laboratory credentials & Creating blockchain transaction...', completed: false },
+    { message: 'Searching for minted NFT...', completed: false },
     { message: 'Finalizing digital certificate...', completed: false }
   ]);
   
   const [certificateData, setCertificateData] = useState<CertificateData | null>(null);
   const [ipfsResult, setIPFSResult] = useState<IPFSUploadResult | null>(null);
   const [nftMetadataUrl, setNftMetadataUrl] = useState<string | null>(null);
+  const [nftSnowtraceUrl, setNftSnowtraceUrl] = useState<string | null>(null);
   const [transactionHash, setTransactionHash] = useState<string | null>(null);
   const [isComplete, setIsComplete] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -166,8 +170,28 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
           status: 'success'
         });
         
-        // Step 8: Finalizing digital certificate
-        await processStep(7, 1200);
+        // Step 8: Searching for minted NFT
+        await processStep(7, 2000);
+        
+        // Wait a bit more for the NFT to be minted and indexed
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        try {
+          const latestNFT = await dccNFT.getLatestNFT();
+          if (latestNFT) {
+            console.log('🎉 Found minted NFT:', latestNFT);
+            setNftMetadataUrl(latestNFT.tokenURI);
+            setNftSnowtraceUrl(latestNFT.snowtraceUrl);
+          } else {
+            console.log('⚠️ NFT not found yet, but transaction was successful');
+          }
+        } catch (nftError) {
+          console.error('Error searching for NFT:', nftError);
+          // Don't fail the whole process if NFT search fails
+        }
+        
+        // Step 9: Finalizing digital certificate
+        await processStep(8, 1200);
         
         setTransactionHash(transactionHash);
         setIsComplete(true);
@@ -377,6 +401,49 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
                   <div className="mt-3 p-3 bg-purple-100 rounded-lg">
                     <p className="text-sm text-purple-800">
                       <strong>This is your NFT metadata URL</strong> - it contains all the certificate information that was stored on the blockchain.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* NFT Snowtrace URL */}
+              {nftSnowtraceUrl && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+                  <div className="flex items-center space-x-3 mb-4">
+                    <ExternalLink className="h-6 w-6 text-green-600" />
+                    <h5 className="font-semibold text-green-900">🎉 Your NFT on Snowtrace</h5>
+                  </div>
+                  
+                  <div className="bg-white border border-green-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <code className="text-sm text-green-800 break-all font-mono">
+                        {nftSnowtraceUrl}
+                      </code>
+                      <button
+                        onClick={() => copyToClipboard(nftSnowtraceUrl)}
+                        className="ml-4 p-2 text-green-600 hover:text-green-800 transition-colors"
+                        title="Copy URL"
+                      >
+                        {copied ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4">
+                    <a
+                      href={nftSnowtraceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-lg font-medium"
+                    >
+                      <ExternalLink className="h-5 w-5" />
+                      <span>View Your NFT on Snowtrace</span>
+                    </a>
+                  </div>
+                  
+                  <div className="mt-3 p-3 bg-green-100 rounded-lg">
+                    <p className="text-sm text-green-800">
+                      <strong>🎯 This is your minted NFT!</strong> Click the link above to see your digital certificate NFT on the Avalanche blockchain explorer.
                     </p>
                   </div>
                 </div>
